@@ -60,23 +60,55 @@ ${depthInstructions[analysisDepth as keyof typeof depthInstructions]}`;
 Forneça uma resposta estruturada em JSON com o seguinte formato:
 {
   "trending_colors": [
-    {"name": "Nome da Cor", "hex": "#HEXCODE", "confidence": 95, "reason": "Por que está em alta"}
+    {
+      "name": "Nome da Cor", 
+      "hex": "#HEXCODE", 
+      "confidence": 95, 
+      "reason": "Por que está em alta",
+      "visual_reference_url": "URL de exemplo visual (Pinterest, Instagram, etc)",
+      "search_appearances": 1500,
+      "sources": ["Google Trends", "Instagram Fashion", "WGSN", "Vogue"]
+    }
   ],
   "trending_fabrics": [
-    {"name": "Nome do Tecido", "trend": "+X%", "reason": "Por que está crescendo"}
+    {
+      "name": "Nome do Tecido", 
+      "trend": "+X%", 
+      "reason": "Por que está crescendo",
+      "visual_reference_url": "URL de exemplo visual",
+      "search_appearances": 800,
+      "sources": ["H&M", "Zara", "Fashion Snoops", "Pantone"]
+    }
   ],
   "trending_models": [
-    {"name": "Tipo de Modelagem", "popularity": "alta/média", "description": "Descrição breve"}
+    {
+      "name": "Tipo de Modelagem", 
+      "popularity": "alta/média", 
+      "description": "Descrição breve",
+      "visual_reference_url": "URL de exemplo visual",
+      "search_appearances": 1200,
+      "sources": ["TikTok Fashion", "Pinterest Trends", "Shein"]
+    }
   ],
   "market_insights": [
-    "Insight sobre o mercado atual"
+    {
+      "insight": "Insight sobre o mercado atual",
+      "source": "Fonte do insight (Google Trends, WGSN, etc)"
+    }
   ],
   "recommendations": [
-    "Recomendação específica para a coleção"
+    {
+      "recommendation": "Recomendação específica para a coleção",
+      "priority": "alta/média/baixa"
+    }
   ]
 }
 
-IMPORTANTE: Retorne APENAS o JSON, sem texto adicional antes ou depois.`;
+IMPORTANTE: 
+- Retorne APENAS o JSON, sem texto adicional antes ou depois
+- Inclua URLs reais de referências visuais de plataformas como Pinterest, Instagram, Google Images
+- Forneça números estimados realistas de aparições em pesquisas baseado na popularidade
+- Liste as fontes específicas onde cada tendência foi identificada`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
