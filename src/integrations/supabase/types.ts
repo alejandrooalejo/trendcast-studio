@@ -71,6 +71,7 @@ export type Database = {
           risk_level: string | null
           score_justification: string | null
           sku: string | null
+          sources: string[] | null
         }
         Insert: {
           analysis_description?: string | null
@@ -86,6 +87,7 @@ export type Database = {
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
+          sources?: string[] | null
         }
         Update: {
           analysis_description?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
+          sources?: string[] | null
         }
         Relationships: [
           {
