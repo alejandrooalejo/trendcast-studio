@@ -103,6 +103,54 @@ export type Database = {
           },
         ]
       }
+      market_insights: {
+        Row: {
+          analysis_id: string
+          created_at: string | null
+          id: string
+          insight: string
+          source: string | null
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string | null
+          id?: string
+          insight: string
+          source?: string | null
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string | null
+          id?: string
+          insight?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
+      recommendations: {
+        Row: {
+          analysis_id: string
+          created_at: string | null
+          id: string
+          priority: string | null
+          recommendation: string
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          recommendation: string
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string | null
+          id?: string
+          priority?: string | null
+          recommendation?: string
+        }
+        Relationships: []
+      }
       trending_colors: {
         Row: {
           analysis_id: string
@@ -111,6 +159,10 @@ export type Database = {
           hex_code: string
           id: string
           name: string
+          reason: string | null
+          search_appearances: number | null
+          sources: string[] | null
+          visual_reference_url: string | null
         }
         Insert: {
           analysis_id: string
@@ -119,6 +171,10 @@ export type Database = {
           hex_code: string
           id?: string
           name: string
+          reason?: string | null
+          search_appearances?: number | null
+          sources?: string[] | null
+          visual_reference_url?: string | null
         }
         Update: {
           analysis_id?: string
@@ -127,6 +183,10 @@ export type Database = {
           hex_code?: string
           id?: string
           name?: string
+          reason?: string | null
+          search_appearances?: number | null
+          sources?: string[] | null
+          visual_reference_url?: string | null
         }
         Relationships: [
           {
@@ -144,21 +204,33 @@ export type Database = {
           created_at: string | null
           id: string
           name: string
+          reason: string | null
+          search_appearances: number | null
+          sources: string[] | null
           trend_percentage: string
+          visual_reference_url: string | null
         }
         Insert: {
           analysis_id: string
           created_at?: string | null
           id?: string
           name: string
+          reason?: string | null
+          search_appearances?: number | null
+          sources?: string[] | null
           trend_percentage: string
+          visual_reference_url?: string | null
         }
         Update: {
           analysis_id?: string
           created_at?: string | null
           id?: string
           name?: string
+          reason?: string | null
+          search_appearances?: number | null
+          sources?: string[] | null
           trend_percentage?: string
+          visual_reference_url?: string | null
         }
         Relationships: [
           {
@@ -169,6 +241,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trending_models: {
+        Row: {
+          analysis_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          popularity: string
+          search_appearances: number | null
+          sources: string[] | null
+          visual_reference_url: string | null
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          popularity: string
+          search_appearances?: number | null
+          sources?: string[] | null
+          visual_reference_url?: string | null
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          popularity?: string
+          search_appearances?: number | null
+          sources?: string[] | null
+          visual_reference_url?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
