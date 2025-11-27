@@ -14,7 +14,162 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analyses: {
+        Row: {
+          analysis_depth: string
+          collection_name: string
+          collection_type: string
+          created_at: string | null
+          focus_colors: boolean | null
+          focus_fabrics: boolean | null
+          focus_models: boolean | null
+          id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_depth: string
+          collection_name: string
+          collection_type: string
+          created_at?: string | null
+          focus_colors?: boolean | null
+          focus_fabrics?: boolean | null
+          focus_models?: boolean | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_depth?: string
+          collection_name?: string
+          collection_type?: string
+          created_at?: string | null
+          focus_colors?: boolean | null
+          focus_fabrics?: boolean | null
+          focus_models?: boolean | null
+          id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      analysis_products: {
+        Row: {
+          analysis_id: string
+          category: string | null
+          color: string | null
+          created_at: string | null
+          demand_score: number | null
+          fabric: string | null
+          id: string
+          image_url: string | null
+          risk_level: string | null
+          sku: string | null
+        }
+        Insert: {
+          analysis_id: string
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          demand_score?: number | null
+          fabric?: string | null
+          id?: string
+          image_url?: string | null
+          risk_level?: string | null
+          sku?: string | null
+        }
+        Update: {
+          analysis_id?: string
+          category?: string | null
+          color?: string | null
+          created_at?: string | null
+          demand_score?: number | null
+          fabric?: string | null
+          id?: string
+          image_url?: string | null
+          risk_level?: string | null
+          sku?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_products_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trending_colors: {
+        Row: {
+          analysis_id: string
+          confidence_score: number
+          created_at: string | null
+          hex_code: string
+          id: string
+          name: string
+        }
+        Insert: {
+          analysis_id: string
+          confidence_score: number
+          created_at?: string | null
+          hex_code: string
+          id?: string
+          name: string
+        }
+        Update: {
+          analysis_id?: string
+          confidence_score?: number
+          created_at?: string | null
+          hex_code?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trending_colors_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trending_fabrics: {
+        Row: {
+          analysis_id: string
+          created_at: string | null
+          id: string
+          name: string
+          trend_percentage: string
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string | null
+          id?: string
+          name: string
+          trend_percentage: string
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          trend_percentage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trending_fabrics_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "analyses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
