@@ -190,11 +190,11 @@ export default function Trends() {
         return;
       }
 
-      if (!trendData?.success || !trendData?.data || !trendData?.analysisId) {
+      if (!trendData?.success || !trendData?.data || !trendData?.data?.analysis_id) {
         throw new Error("Invalid response from trend analysis");
       }
 
-      const analysisId = trendData.analysisId;
+      const analysisId = trendData.data.analysis_id;
 
       // Update trending data with real AI results
       if (trendData.data.trending_colors) {
