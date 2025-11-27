@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const COLLECTION_TYPES = [
   { value: "summer", label: "Verão", description: "Coleção leve e colorida" },
@@ -37,13 +39,13 @@ const demandData = [
   { month: "Jun", demand: 900 },
 ];
 
-const trendingColors = [
+const trendingColorsDefault = [
   { name: "Terracota", hex: "#E07856", confidence: 94 },
   { name: "Verde Sage", hex: "#A4B494", confidence: 89 },
   { name: "Azul Petróleo", hex: "#2C5F72", confidence: 87 },
 ];
 
-const trendingFabrics = [
+const trendingFabricsDefault = [
   { name: "Linho Orgânico", trend: "+45%", icon: Shirt },
   { name: "Algodão Reciclado", trend: "+38%", icon: Shirt },
   { name: "Viscose Sustentável", trend: "+32%", icon: Shirt },
@@ -60,8 +62,10 @@ interface Product {
 }
 
 export default function Trends() {
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [showResults, setShowResults] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   // Form data
   const [collectionName, setCollectionName] = useState("");
@@ -72,6 +76,10 @@ export default function Trends() {
   const [focusModels, setFocusModels] = useState(true);
   const [analysisDepth, setAnalysisDepth] = useState("standard");
   const [dragActive, setDragActive] = useState(false);
+
+  // Results data (will be updated by AI)
+  const [trendingColors, setTrendingColors] = useState(trendingColorsDefault);
+  const [trendingFabrics, setTrendingFabrics] = useState(trendingFabricsDefault);
 
   const progress = (currentStep / STEPS.length) * 100;
 
@@ -147,14 +155,77 @@ export default function Trends() {
     }
   };
 
-  const handleGenerateAnalysis = () => {
-    console.log("Gerando análise:", {
+  const handleGenerateAnalysis = async () => {
+    if (!canProceed()) return;
+
+    setLoading(true);
+    console.log("Gerando análise com IA:", {
       collectionName,
       collectionType,
-      products,
+      products: products.length,
       parameters: { focusColors, focusFabrics, focusModels, analysisDepth },
     });
-    setShowResults(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-trends', {
+        body: {
+          collectionType,
+          collectionName,
+          focusColors,
+          focusFabrics,
+          focusModels,
+          analysisDepth,
+        }
+      });
+
+      if (error) {
+        console.error("Error generating analysis:", error);
+        toast({
+          title: "Erro ao gerar análise",
+          description: error.message || "Não foi possível gerar a análise. Tente novamente.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (data?.success && data?.data) {
+        // Update trending data with real AI results
+        if (data.data.trending_colors) {
+          setTrendingColors(data.data.trending_colors.map((c: any) => ({
+            name: c.name,
+            hex: c.hex,
+            confidence: c.confidence,
+          })));
+        }
+
+        if (data.data.trending_fabrics) {
+          setTrendingFabrics(data.data.trending_fabrics.map((f: any) => ({
+            name: f.name,
+            trend: f.trend,
+            icon: Shirt,
+          })));
+        }
+
+        toast({
+          title: "Análise concluída!",
+          description: "Tendências identificadas com sucesso pela IA.",
+        });
+
+        setShowResults(true);
+      } else {
+        throw new Error("Invalid response from analysis");
+      }
+    } catch (error) {
+      console.error("Analysis error:", error);
+      toast({
+        title: "Erro",
+        description: "Falha ao gerar análise. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleNewAnalysis = () => {
@@ -545,9 +616,9 @@ export default function Trends() {
                     <ChevronRight className="h-4 w-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button onClick={handleGenerateAnalysis} disabled={!canProceed()}>
+                  <Button onClick={handleGenerateAnalysis} disabled={!canProceed() || loading}>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Gerar Análise
+                    {loading ? "Gerando Análise..." : "Gerar Análise"}
                   </Button>
                 )}
               </div>
