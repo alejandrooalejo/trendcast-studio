@@ -59,7 +59,8 @@ const recentAnalyses = [{
 export default function Dashboard() {
   const [wizardOpen, setWizardOpen] = useState(false);
 
-  return <DashboardLayout>
+  return (
+    <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
