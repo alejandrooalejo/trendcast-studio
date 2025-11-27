@@ -167,6 +167,12 @@ export default function Trends() {
     });
 
     try {
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Usuário não autenticado");
+      }
+
       // Step 1: Generate trend analysis
       const { data: trendData, error: trendError } = await supabase.functions.invoke('analyze-trends', {
         body: {
@@ -190,11 +196,15 @@ export default function Trends() {
         return;
       }
 
+      console.log("Trend analysis response:", trendData);
+
       if (!trendData?.success || !trendData?.data || !trendData?.data?.analysis_id) {
+        console.error("Invalid trend data:", trendData);
         throw new Error("Invalid response from trend analysis");
       }
 
       const analysisId = trendData.data.analysis_id;
+      console.log("Analysis ID:", analysisId);
 
       // Update trending data with real AI results
       if (trendData.data.trending_colors) {
@@ -220,8 +230,10 @@ export default function Trends() {
           description: `Analisando ${products.length} produto(s) com IA`,
         });
 
-        const productAnalysisPromises = products.map(async (product) => {
+        const productAnalysisPromises = products.map(async (product, index) => {
           try {
+            console.log(`Analyzing product ${index + 1}/${products.length}`);
+            
             // Convert image to base64
             const reader = new FileReader();
             const base64Promise = new Promise<string>((resolve, reject) => {
@@ -234,6 +246,7 @@ export default function Trends() {
             });
 
             const imageBase64 = await base64Promise;
+            console.log(`Image converted to base64 for product ${index + 1}`);
 
             // Call analyze-product edge function
             const { data: productData, error: productError } = await supabase.functions.invoke('analyze-product', {
@@ -249,17 +262,37 @@ export default function Trends() {
 
             if (productError) {
               console.error("Error analyzing product:", productError);
+              toast({
+                title: `Erro ao analisar produto ${index + 1}`,
+                description: productError.message,
+                variant: "destructive",
+              });
               return null;
             }
+
+            console.log(`Product ${index + 1} analyzed successfully:`, productData);
+            
+            toast({
+              title: `Produto ${index + 1} analisado`,
+              description: `Score: ${productData?.data?.demand_projection || 'N/A'}`,
+            });
 
             return productData;
           } catch (error) {
             console.error("Error processing product:", error);
+            toast({
+              title: `Erro no produto ${index + 1}`,
+              description: error instanceof Error ? error.message : "Erro desconhecido",
+              variant: "destructive",
+            });
             return null;
           }
         });
 
-        await Promise.all(productAnalysisPromises);
+        const results = await Promise.all(productAnalysisPromises);
+        const successfulAnalyses = results.filter(r => r !== null).length;
+        
+        console.log(`${successfulAnalyses}/${products.length} products analyzed successfully`);
       }
 
       toast({
@@ -274,7 +307,7 @@ export default function Trends() {
       console.error("Analysis error:", error);
       toast({
         title: "Erro",
-        description: "Falha ao gerar análise. Tente novamente.",
+        description: error instanceof Error ? error.message : "Falha ao gerar análise. Tente novamente.",
         variant: "destructive",
       });
     } finally {
