@@ -67,11 +67,13 @@ ${trendsSummary}
 
 Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
 {
+  "analysis_description": "Descrição visual detalhada do produto: cores, tecidos aparentes, modelagem, estilo, acabamentos visíveis",
   "detected_color": "Nome da cor + código hex (ex: 'Azul Marinho #1A3B5C')",
   "detected_fabric": "Tipo de tecido detectado visualmente",
   "detected_style": "Modelagem/corte identificado",
   "alignment_score": 85,
   "demand_projection": 72,
+  "score_justification": "Justificativa DETALHADA do score de demanda explicando: (1) Como cada aspecto (cor, tecido, modelagem) foi avaliado, (2) Quais tendências específicas foram comparadas, (3) Por que recebeu este score",
   "risk_level": "low/medium/high",
   "insights": [
     {
@@ -99,18 +101,20 @@ Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
 }
 
 REGRAS CRÍTICAS:
-1. alignment_score (0-100): Quanto o produto atual está alinhado com as tendências listadas
-2. demand_projection (0-100): Projeção realista de demanda considerando:
+1. analysis_description: Descreva DETALHADAMENTE o que você vê na imagem
+2. alignment_score (0-100): Quanto o produto atual está alinhado com as tendências listadas
+3. demand_projection (0-100): Projeção realista de demanda considerando:
    - Alinhamento de cor com cores em alta (peso: 35%)
    - Alinhamento de tecido com materiais trending (peso: 30%)
    - Alinhamento de estilo com modelagens populares (peso: 35%)
-3. risk_level: 
+4. score_justification: Explique DETALHADAMENTE como você calculou o score, cite tendências específicas
+5. risk_level: 
    - "low" se demand_projection > 75
    - "medium" se demand_projection 50-75
    - "high" se demand_projection < 50
-4. Insights: Forneça 3-5 insights CONCRETOS, não genéricos
-5. Improvements: Liste 2-4 melhorias ACIONÁVEIS baseadas nas tendências REAIS fornecidas
-6. Comparison: Compare CADA aspecto do produto com CADA tendência relevante fornecida
+6. Insights: Forneça 3-5 insights CONCRETOS, não genéricos
+7. Improvements: Liste 2-4 melhorias ACIONÁVEIS baseadas nas tendências REAIS fornecidas
+8. Comparison: Compare CADA aspecto do produto com CADA tendência relevante fornecida
 
 IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendências genéricas!`;
 
@@ -187,7 +191,10 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
         color: analysisData.detected_color,
         fabric: analysisData.detected_fabric,
         demand_score: analysisData.demand_projection,
-        risk_level: analysisData.risk_level
+        risk_level: analysisData.risk_level,
+        insights: analysisData.insights || [],
+        analysis_description: analysisData.analysis_description || null,
+        score_justification: analysisData.score_justification || null
       })
       .select()
       .single();

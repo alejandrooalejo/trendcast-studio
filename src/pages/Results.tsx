@@ -208,7 +208,33 @@ export default function Results() {
                                       animate={{ width: `${product.demand_score}%` }}
                                       transition={{ duration: 0.8, delay: 0.2 }}
                                     />
-                                  </div>
+                                   </div>
+                                </div>
+                              )}
+
+                              {product.analysis_description && (
+                                <div className="mt-3 p-3 bg-muted/50 rounded-lg">
+                                  <p className="text-sm font-medium mb-1">Análise Visual:</p>
+                                  <p className="text-sm text-muted-foreground">{product.analysis_description}</p>
+                                </div>
+                              )}
+
+                              {product.score_justification && (
+                                <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                  <p className="text-sm font-medium mb-1 text-primary">Justificativa do Score:</p>
+                                  <p className="text-sm">{product.score_justification}</p>
+                                </div>
+                              )}
+
+                              {product.insights && product.insights.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                  <p className="text-sm font-medium">Insights:</p>
+                                  {product.insights.slice(0, 3).map((insight: any, idx: number) => (
+                                    <div key={idx} className="p-2 bg-muted/30 rounded text-xs">
+                                      <p className="font-medium">{insight.title}</p>
+                                      <p className="text-muted-foreground">{insight.description}</p>
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>

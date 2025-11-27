@@ -58,6 +58,7 @@ export type Database = {
       }
       analysis_products: {
         Row: {
+          analysis_description: string | null
           analysis_id: string
           category: string | null
           color: string | null
@@ -66,10 +67,13 @@ export type Database = {
           fabric: string | null
           id: string
           image_url: string | null
+          insights: Json | null
           risk_level: string | null
+          score_justification: string | null
           sku: string | null
         }
         Insert: {
+          analysis_description?: string | null
           analysis_id: string
           category?: string | null
           color?: string | null
@@ -78,10 +82,13 @@ export type Database = {
           fabric?: string | null
           id?: string
           image_url?: string | null
+          insights?: Json | null
           risk_level?: string | null
+          score_justification?: string | null
           sku?: string | null
         }
         Update: {
+          analysis_description?: string | null
           analysis_id?: string
           category?: string | null
           color?: string | null
@@ -90,7 +97,9 @@ export type Database = {
           fabric?: string | null
           id?: string
           image_url?: string | null
+          insights?: Json | null
           risk_level?: string | null
+          score_justification?: string | null
           sku?: string | null
         }
         Relationships: [
