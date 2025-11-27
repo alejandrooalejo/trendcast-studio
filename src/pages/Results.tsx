@@ -4,10 +4,11 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, TrendingUp, TrendingDown, Minus, ExternalLink } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, Target, Info, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 export default function Results() {
   const navigate = useNavigate();
@@ -72,16 +73,14 @@ export default function Results() {
   };
 
   const getTrendIcon = (riskLevel: string) => {
-    switch (riskLevel?.toLowerCase()) {
-      case "baixo":
-      case "low":
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case "alto":
-      case "high":
-        return <TrendingDown className="h-4 w-4 text-destructive" />;
-      default:
-        return <Minus className="h-4 w-4 text-muted-foreground" />;
+    const riskLower = riskLevel?.toLowerCase();
+    if (riskLower === "baixo" || riskLower === "low") {
+      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
     }
+    if (riskLower === "alto" || riskLower === "high") {
+      return <AlertTriangle className="h-5 w-5 text-destructive" />;
+    }
+    return <AlertCircle className="h-5 w-5 text-primary" />;
   };
 
   const getRiskBadge = (risk: string) => {
@@ -160,9 +159,9 @@ export default function Results() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: index * 0.1 }}
                       >
-                        <div className="flex gap-6 p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="flex gap-4 p-6 border rounded-xl hover:shadow-md transition-all duration-300 bg-card">
                           {product.image_url && (
-                            <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0 overflow-hidden">
+                            <div className="w-32 h-32 bg-muted rounded-xl flex-shrink-0 overflow-hidden border-2 border-border">
                               <img 
                                 src={product.image_url} 
                                 alt={product.sku || "Produto"} 
@@ -171,73 +170,134 @@ export default function Results() {
                             </div>
                           )}
 
-                          <div className="flex-1 space-y-3">
-                            <div>
-                              <div className="flex items-start justify-between mb-2">
-                                <div>
-                                  <h3 className="text-lg font-semibold font-display">
-                                    {product.sku || `Produto ${index + 1}`}
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground">
-                                    {product.category || "Sem categoria"} • {product.color || "Cor não especificada"}
-                                  </p>
+                          <div className="flex-1 space-y-4">
+                            {/* Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="space-y-1">
+                                <h3 className="text-xl font-semibold">
+                                  {product.sku || `Produto ${index + 1}`}
+                                </h3>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <span>{product.category || "Sem categoria"}</span>
+                                  {product.color && (
+                                    <>
+                                      <span>•</span>
+                                      <span>{product.color}</span>
+                                    </>
+                                  )}
                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {getTrendIcon(product.risk_level)}
                                 {product.risk_level && (
-                                  <Badge variant={getRiskBadge(product.risk_level)}>
-                                    Risco {product.risk_level}
+                                  <Badge 
+                                    variant={getRiskBadge(product.risk_level)}
+                                    className="text-sm"
+                                  >
+                                    {product.risk_level}
                                   </Badge>
                                 )}
                               </div>
-
-                              {product.demand_score && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-sm text-muted-foreground">Score de demanda</span>
-                                    <span className="font-semibold">{product.demand_score}/100</span>
-                                  </div>
-                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                    <motion.div
-                                      className={`h-full ${
-                                        product.demand_score >= 80
-                                          ? "bg-green-600"
-                                          : product.demand_score >= 60
-                                          ? "bg-primary"
-                                          : "bg-destructive"
-                                      }`}
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${product.demand_score}%` }}
-                                      transition={{ duration: 0.8, delay: 0.2 }}
-                                    />
-                                   </div>
-                                </div>
-                              )}
-
-                              {product.analysis_description && (
-                                <div className="mt-3 p-3 bg-muted/50 rounded-lg">
-                                  <p className="text-sm font-medium mb-1">Análise Visual:</p>
-                                  <p className="text-sm text-muted-foreground">{product.analysis_description}</p>
-                                </div>
-                              )}
-
-                              {product.score_justification && (
-                                <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                  <p className="text-sm font-medium mb-1 text-primary">Justificativa do Score:</p>
-                                  <p className="text-sm">{product.score_justification}</p>
-                                </div>
-                              )}
-
-                              {product.insights && product.insights.length > 0 && (
-                                <div className="mt-3 space-y-2">
-                                  <p className="text-sm font-medium">Insights:</p>
-                                  {product.insights.slice(0, 3).map((insight: any, idx: number) => (
-                                    <div key={idx} className="p-2 bg-muted/30 rounded text-xs">
-                                      <p className="font-medium">{insight.title}</p>
-                                      <p className="text-muted-foreground">{insight.description}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
                             </div>
+
+                            {/* Analysis Description */}
+                            {product.analysis_description && (
+                              <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                                <div className="flex items-start gap-2 mb-2">
+                                  <Eye className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                  <p className="text-sm font-medium text-primary">Análise Visual</p>
+                                </div>
+                                <p className="text-sm text-muted-foreground leading-relaxed ml-6">
+                                  {product.analysis_description}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Demand Score */}
+                            {product.demand_score && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Target className="h-4 w-4 text-primary" />
+                                    <span className="text-sm font-medium">Score de Demanda</span>
+                                  </div>
+                                  <span className="text-2xl font-bold">{product.demand_score}<span className="text-sm text-muted-foreground">/100</span></span>
+                                </div>
+                                <div className="h-3 bg-muted rounded-full overflow-hidden border border-border">
+                                  <motion.div
+                                    className={`h-full transition-colors ${
+                                      product.demand_score >= 80
+                                        ? "bg-gradient-to-r from-green-500 to-green-600"
+                                        : product.demand_score >= 60
+                                        ? "bg-gradient-to-r from-primary to-primary/80"
+                                        : "bg-gradient-to-r from-destructive to-destructive/80"
+                                    }`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${product.demand_score}%` }}
+                                    transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Score Justification */}
+                            {product.score_justification && (
+                              <>
+                                <Separator className="my-4" />
+                                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                                  <div className="flex items-start gap-2 mb-2">
+                                    <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm font-semibold text-primary">Por que este score?</p>
+                                  </div>
+                                  <p className="text-sm leading-relaxed ml-6">
+                                    {product.score_justification}
+                                  </p>
+                                </div>
+                              </>
+                            )}
+
+                            {/* Insights */}
+                            {product.insights && product.insights.length > 0 && (
+                              <>
+                                <Separator className="my-4" />
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Lightbulb className="h-4 w-4 text-primary" />
+                                    <p className="text-sm font-semibold">Principais Insights</p>
+                                  </div>
+                                  <div className="grid gap-2 ml-6">
+                                    {product.insights.slice(0, 3).map((insight: any, idx: number) => (
+                                      <motion.div 
+                                        key={idx} 
+                                        className="p-3 bg-accent/50 rounded-lg border border-accent"
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                      >
+                                        <div className="flex items-start gap-2">
+                                          <Badge 
+                                            variant={
+                                              insight.type === "positive" ? "secondary" :
+                                              insight.type === "negative" ? "destructive" :
+                                              "default"
+                                            }
+                                            className="text-xs shrink-0 mt-0.5"
+                                          >
+                                            {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "→"}
+                                          </Badge>
+                                          <div className="flex-1 space-y-1">
+                                            <p className="font-medium text-sm">{insight.title}</p>
+                                            <p className="text-xs text-muted-foreground leading-relaxed">
+                                              {insight.description}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </div>
                       </motion.div>
