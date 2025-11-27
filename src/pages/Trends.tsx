@@ -167,7 +167,8 @@ export default function Trends() {
     });
 
     try {
-      const { data, error } = await supabase.functions.invoke('analyze-trends', {
+      // Step 1: Generate trend analysis
+      const { data: trendData, error: trendError } = await supabase.functions.invoke('analyze-trends', {
         body: {
           collectionType,
           collectionName,
@@ -178,44 +179,97 @@ export default function Trends() {
         }
       });
 
-      if (error) {
-        console.error("Error generating analysis:", error);
+      if (trendError) {
+        console.error("Error generating analysis:", trendError);
         toast({
           title: "Erro ao gerar análise",
-          description: error.message || "Não foi possível gerar a análise. Tente novamente.",
+          description: trendError.message || "Não foi possível gerar a análise. Tente novamente.",
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      if (data?.success && data?.data) {
-        // Update trending data with real AI results
-        if (data.data.trending_colors) {
-          setTrendingColors(data.data.trending_colors.map((c: any) => ({
-            name: c.name,
-            hex: c.hex,
-            confidence: c.confidence,
-          })));
-        }
+      if (!trendData?.success || !trendData?.data || !trendData?.analysisId) {
+        throw new Error("Invalid response from trend analysis");
+      }
 
-        if (data.data.trending_fabrics) {
-          setTrendingFabrics(data.data.trending_fabrics.map((f: any) => ({
-            name: f.name,
-            trend: f.trend,
-            icon: Shirt,
-          })));
-        }
+      const analysisId = trendData.analysisId;
 
+      // Update trending data with real AI results
+      if (trendData.data.trending_colors) {
+        setTrendingColors(trendData.data.trending_colors.map((c: any) => ({
+          name: c.name,
+          hex: c.hex,
+          confidence: c.confidence,
+        })));
+      }
+
+      if (trendData.data.trending_fabrics) {
+        setTrendingFabrics(trendData.data.trending_fabrics.map((f: any) => ({
+          name: f.name,
+          trend: f.trend,
+          icon: Shirt,
+        })));
+      }
+
+      // Step 2: Analyze product images if any
+      if (products.length > 0) {
         toast({
-          title: "Análise concluída!",
-          description: "Tendências identificadas com sucesso pela IA.",
+          title: "Analisando produtos...",
+          description: `Analisando ${products.length} produto(s) com IA`,
         });
 
-        setShowResults(true);
-      } else {
-        throw new Error("Invalid response from analysis");
+        const productAnalysisPromises = products.map(async (product) => {
+          try {
+            // Convert image to base64
+            const reader = new FileReader();
+            const base64Promise = new Promise<string>((resolve, reject) => {
+              reader.onloadend = () => {
+                const base64 = reader.result as string;
+                resolve(base64);
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(product.file);
+            });
+
+            const imageBase64 = await base64Promise;
+
+            // Call analyze-product edge function
+            const { data: productData, error: productError } = await supabase.functions.invoke('analyze-product', {
+              body: {
+                analysisId,
+                imageBase64,
+                sku: product.sku || `produto-${product.id}`,
+                category: product.category,
+                fabric: product.fabric,
+                color: product.color,
+              }
+            });
+
+            if (productError) {
+              console.error("Error analyzing product:", productError);
+              return null;
+            }
+
+            return productData;
+          } catch (error) {
+            console.error("Error processing product:", error);
+            return null;
+          }
+        });
+
+        await Promise.all(productAnalysisPromises);
       }
+
+      toast({
+        title: "Análise concluída!",
+        description: products.length > 0 
+          ? `Tendências identificadas e ${products.length} produto(s) analisado(s) com sucesso pela IA.`
+          : "Tendências identificadas com sucesso pela IA.",
+      });
+
+      setShowResults(true);
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
