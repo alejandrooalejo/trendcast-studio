@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TrendingUp, AlertTriangle, Package, Sparkles } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { StatCard } from "@/components/StatCard";
@@ -6,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { NewAnalysisWizard } from "@/components/wizard/NewAnalysisWizard";
 const demandData = [{
   month: "Jan",
   demand: 400
@@ -55,6 +57,8 @@ const recentAnalyses = [{
   status: "concluída"
 }];
 export default function Dashboard() {
+  const [wizardOpen, setWizardOpen] = useState(false);
+
   return <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -62,11 +66,16 @@ export default function Dashboard() {
             <h1 className="text-3xl font-semibold text-foreground font-sans">Dashboard</h1>
             <p className="text-muted-foreground mt-1">Visão geral das suas análises e tendências</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90">
+          <Button 
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => setWizardOpen(true)}
+          >
             <Sparkles className="mr-2 h-4 w-4" />
             Gerar Nova Análise
           </Button>
         </div>
+
+        <NewAnalysisWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard title="Análises este mês" value="24" icon={Package} trend={{
@@ -200,5 +209,6 @@ export default function Dashboard() {
           </Card>
         </motion.div>
       </div>
-    </DashboardLayout>;
+    </DashboardLayout>
+  );
 }
