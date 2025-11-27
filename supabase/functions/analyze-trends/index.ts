@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,8 +22,20 @@ serve(async (req) => {
 
   try {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!LOVABLE_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const authHeader = req.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
+    
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !user) {
+      throw new Error('Unauthorized');
     }
 
     const { collectionType, collectionName, focusColors, focusFabrics, focusModels, analysisDepth }: AnalyzeRequest = await req.json();
@@ -164,8 +177,138 @@ IMPORTANTE:
       throw new Error('Failed to parse AI response');
     }
 
+    // Save analysis to database
+    const { data: analysisRecord, error: analysisError } = await supabase
+      .from('analyses')
+      .insert({
+        user_id: user.id,
+        collection_type: collectionType,
+        collection_name: collectionName,
+        focus_colors: focusColors,
+        focus_fabrics: focusFabrics,
+        focus_models: focusModels,
+        analysis_depth: analysisDepth,
+        status: 'completed'
+      })
+      .select()
+      .single();
+
+    if (analysisError) {
+      console.error('Error saving analysis:', analysisError);
+      throw new Error('Failed to save analysis');
+    }
+
+    const analysisId = analysisRecord.id;
+    console.log('Analysis saved with ID:', analysisId);
+
+    // Save trending colors
+    if (analysisData.trending_colors?.length > 0) {
+      const colorsToInsert = analysisData.trending_colors.map((color: any) => ({
+        analysis_id: analysisId,
+        name: color.name,
+        hex_code: color.hex,
+        confidence_score: color.confidence,
+        reason: color.reason,
+        visual_reference_url: color.visual_reference_url,
+        search_appearances: color.search_appearances,
+        sources: color.sources
+      }));
+
+      const { error: colorsError } = await supabase
+        .from('trending_colors')
+        .insert(colorsToInsert);
+
+      if (colorsError) {
+        console.error('Error saving colors:', colorsError);
+      }
+    }
+
+    // Save trending fabrics
+    if (analysisData.trending_fabrics?.length > 0) {
+      const fabricsToInsert = analysisData.trending_fabrics.map((fabric: any) => ({
+        analysis_id: analysisId,
+        name: fabric.name,
+        trend_percentage: fabric.trend,
+        reason: fabric.reason,
+        visual_reference_url: fabric.visual_reference_url,
+        search_appearances: fabric.search_appearances,
+        sources: fabric.sources
+      }));
+
+      const { error: fabricsError } = await supabase
+        .from('trending_fabrics')
+        .insert(fabricsToInsert);
+
+      if (fabricsError) {
+        console.error('Error saving fabrics:', fabricsError);
+      }
+    }
+
+    // Save trending models
+    if (analysisData.trending_models?.length > 0) {
+      const modelsToInsert = analysisData.trending_models.map((model: any) => ({
+        analysis_id: analysisId,
+        name: model.name,
+        popularity: model.popularity,
+        description: model.description,
+        visual_reference_url: model.visual_reference_url,
+        search_appearances: model.search_appearances,
+        sources: model.sources
+      }));
+
+      const { error: modelsError } = await supabase
+        .from('trending_models')
+        .insert(modelsToInsert);
+
+      if (modelsError) {
+        console.error('Error saving models:', modelsError);
+      }
+    }
+
+    // Save market insights
+    if (analysisData.market_insights?.length > 0) {
+      const insightsToInsert = analysisData.market_insights.map((insight: any) => ({
+        analysis_id: analysisId,
+        insight: insight.insight,
+        source: insight.source
+      }));
+
+      const { error: insightsError } = await supabase
+        .from('market_insights')
+        .insert(insightsToInsert);
+
+      if (insightsError) {
+        console.error('Error saving insights:', insightsError);
+      }
+    }
+
+    // Save recommendations
+    if (analysisData.recommendations?.length > 0) {
+      const recommendationsToInsert = analysisData.recommendations.map((rec: any) => ({
+        analysis_id: analysisId,
+        recommendation: rec.recommendation,
+        priority: rec.priority
+      }));
+
+      const { error: recsError } = await supabase
+        .from('recommendations')
+        .insert(recommendationsToInsert);
+
+      if (recsError) {
+        console.error('Error saving recommendations:', recsError);
+      }
+    }
+
+    console.log('All trend data saved successfully');
+
     return new Response(
-      JSON.stringify({ success: true, data: analysisData }),
+      JSON.stringify({ 
+        success: true, 
+        data: {
+          ...analysisData,
+          analysis_id: analysisId
+        }
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
