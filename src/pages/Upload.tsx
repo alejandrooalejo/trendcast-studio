@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload as UploadIcon, X, Sparkles, TrendingUp, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Upload as UploadIcon, X, Sparkles, TrendingUp, AlertTriangle, CheckCircle2, Award, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,6 +219,29 @@ export default function Upload() {
     }
   };
 
+  // Calculate rankings based on analysis
+  const rankedProducts = useMemo(() => {
+    const analyzed = files.filter(f => f.analysis);
+    return analyzed.sort((a, b) => {
+      const scoreA = (a.analysis!.demand_projection + a.analysis!.alignment_score) / 2;
+      const scoreB = (b.analysis!.demand_projection + b.analysis!.alignment_score) / 2;
+      return scoreB - scoreA;
+    });
+  }, [files]);
+
+  const getProductRank = (fileId: string) => {
+    const index = rankedProducts.findIndex(f => f.id === fileId);
+    return index >= 0 ? index + 1 : null;
+  };
+
+  const getRankBadge = (rank: number | null) => {
+    if (!rank) return null;
+    if (rank === 1) return <Badge className="bg-yellow-500 text-white"><Trophy className="h-3 w-3 mr-1" />Melhor Produto</Badge>;
+    if (rank === 2) return <Badge className="bg-gray-400 text-white"><Award className="h-3 w-3 mr-1" />2º Lugar</Badge>;
+    if (rank === 3) return <Badge className="bg-amber-600 text-white"><Award className="h-3 w-3 mr-1" />3º Lugar</Badge>;
+    return <Badge variant="secondary">#{rank}</Badge>;
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -297,6 +320,69 @@ export default function Upload() {
         </motion.div>
 
         <AnimatePresence>
+          {rankedProducts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="mb-6"
+            >
+              <Card className="border-primary/50 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="font-display flex items-center gap-2">
+                    <Trophy className="h-5 w-5 text-yellow-500" />
+                    Ranking de Produtos
+                  </CardTitle>
+                  <CardDescription>Produtos ordenados por potencial de mercado</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {rankedProducts.slice(0, 3).map((file, index) => {
+                      const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
+                      return (
+                        <motion.div
+                          key={file.id}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`relative border rounded-lg p-4 ${index === 0 ? 'border-yellow-500 bg-yellow-50/50' : 'border-border'}`}
+                        >
+                          <div className="absolute top-2 right-2">
+                            {getRankBadge(index + 1)}
+                          </div>
+                          <div className="flex gap-3 mb-3">
+                            <img src={file.preview} alt={file.name} className="w-16 h-16 object-cover rounded" />
+                            <div className="flex-1">
+                              <p className="font-semibold text-sm">{file.sku || file.name}</p>
+                              <p className="text-xs text-muted-foreground">{file.category}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-muted-foreground">Score Geral</span>
+                                <span className="font-semibold">{overallScore}%</span>
+                              </div>
+                              <Progress value={Number(overallScore)} className="h-2" />
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Risco:</span>
+                              <Badge className={`${getRiskColor(file.analysis!.risk_level)} text-xs py-0`}>
+                                {file.analysis!.risk_level}
+                              </Badge>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
           {files.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -328,8 +414,13 @@ export default function Upload() {
                         className="border border-border rounded-lg overflow-hidden"
                       >
                         <div className="flex gap-6 p-4">
-                          <div className="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                             <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
+                            {file.analysis && getProductRank(file.id) && (
+                              <div className="absolute top-1 right-1">
+                                {getRankBadge(getProductRank(file.id))}
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -384,6 +475,16 @@ export default function Upload() {
 
                         {file.analysis && (
                           <div className="border-t border-border bg-muted/30 p-6 space-y-4">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="font-semibold text-lg">Resultados da Análise</h3>
+                              {getProductRank(file.id) && getProductRank(file.id)! <= 3 && (
+                                <Badge className="bg-green-500 text-white">
+                                  <TrendingUp className="h-3 w-3 mr-1" />
+                                  Alto Potencial
+                                </Badge>
+                              )}
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                               <div>
                                 <p className="text-xs text-muted-foreground mb-1">Alinhamento com Tendências</p>

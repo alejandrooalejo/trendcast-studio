@@ -59,34 +59,34 @@ TENDÊNCIAS DE MODELAGEM:
 ${trendingModels.map(m => `- ${m.name} (${m.popularity}): ${m.description}`).join('\n')}
 `;
 
-    const userPrompt = `Analise este produto de moda na imagem e compare com as tendências atuais.
+    const userPrompt = `Analise este produto de moda na imagem e compare DETALHADAMENTE com as tendências fornecidas.
 ${category ? `Categoria: ${category}` : ''}
 ${sku ? `SKU: ${sku}` : ''}
 
 ${trendsSummary}
 
-Forneça uma resposta em JSON:
+Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
 {
-  "detected_color": "Nome e código hex da cor principal detectada",
-  "detected_fabric": "Tipo de tecido identificado (se possível)",
-  "detected_style": "Modelagem/estilo identificado",
+  "detected_color": "Nome da cor + código hex (ex: 'Azul Marinho #1A3B5C')",
+  "detected_fabric": "Tipo de tecido detectado visualmente",
+  "detected_style": "Modelagem/corte identificado",
   "alignment_score": 85,
   "demand_projection": 72,
   "risk_level": "low/medium/high",
   "insights": [
     {
       "type": "positive/negative/improvement",
-      "title": "Título do insight",
-      "description": "Descrição detalhada",
+      "title": "Título claro e direto",
+      "description": "Explicação detalhada do insight com dados concretos",
       "impact": "high/medium/low"
     }
   ],
   "improvements": [
     {
-      "aspect": "cor/tecido/modelagem",
-      "current": "Estado atual",
-      "suggested": "Sugestão de melhoria",
-      "reason": "Por que melhorar",
+      "aspect": "cor/tecido/modelagem/acabamento",
+      "current": "O que está no produto AGORA",
+      "suggested": "O que DEVERIA ser para alinhar com tendências",
+      "reason": "Justificativa ESPECÍFICA baseada nas tendências fornecidas",
       "trend_alignment": 85
     }
   ],
@@ -98,11 +98,21 @@ Forneça uma resposta em JSON:
   }
 }
 
-IMPORTANTE:
-- alignment_score: 0-100, quanto o produto está alinhado com as tendências
-- demand_projection: 0-100, projeção de demanda baseada no alinhamento com tendências
-- risk_level: "low" (>75), "medium" (50-75), "high" (<50) baseado no demand_projection
-- Seja específico e acionável nas sugestões`;
+REGRAS CRÍTICAS:
+1. alignment_score (0-100): Quanto o produto atual está alinhado com as tendências listadas
+2. demand_projection (0-100): Projeção realista de demanda considerando:
+   - Alinhamento de cor com cores em alta (peso: 35%)
+   - Alinhamento de tecido com materiais trending (peso: 30%)
+   - Alinhamento de estilo com modelagens populares (peso: 35%)
+3. risk_level: 
+   - "low" se demand_projection > 75
+   - "medium" se demand_projection 50-75
+   - "high" se demand_projection < 50
+4. Insights: Forneça 3-5 insights CONCRETOS, não genéricos
+5. Improvements: Liste 2-4 melhorias ACIONÁVEIS baseadas nas tendências REAIS fornecidas
+6. Comparison: Compare CADA aspecto do produto com CADA tendência relevante fornecida
+
+IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendências genéricas!`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
