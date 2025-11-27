@@ -73,7 +73,7 @@ Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
   "detected_style": "Modelagem/corte identificado",
   "alignment_score": 85,
   "demand_projection": 72,
-  "score_justification": "Justificativa DETALHADA do score de demanda explicando: (1) Como cada aspecto (cor, tecido, modelagem) foi avaliado, (2) Quais tendências específicas foram comparadas, (3) Por que recebeu este score",
+  "sources": ["Google Trends", "Instagram Fashion", "WGSN", "Vogue", "Zara Trends"],
   "risk_level": "low/medium/high",
   "insights": [
     {
@@ -107,7 +107,7 @@ REGRAS CRÍTICAS:
    - Alinhamento de cor com cores em alta (peso: 35%)
    - Alinhamento de tecido com materiais trending (peso: 30%)
    - Alinhamento de estilo com modelagens populares (peso: 35%)
-4. score_justification: Explique DETALHADAMENTE como você calculou o score, cite tendências específicas
+4. sources: Liste as fontes REAIS das tendências fornecidas que você comparou (Google Trends, Instagram, TikTok, WGSN, Vogue, Zara, H&M, Shein, etc)
 5. risk_level: 
    - "low" se demand_projection > 75
    - "medium" se demand_projection 50-75
@@ -194,7 +194,7 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
         risk_level: analysisData.risk_level,
         insights: analysisData.insights || [],
         analysis_description: analysisData.analysis_description || null,
-        score_justification: analysisData.score_justification || null
+        sources: analysisData.sources || []
       })
       .select()
       .single();

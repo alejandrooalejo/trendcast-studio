@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, Target, Info, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, Target, Info, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, Link2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -240,18 +240,26 @@ export default function Results() {
                               </div>
                             )}
 
-                            {/* Score Justification */}
-                            {product.score_justification && (
+                            {/* Score Justification - Now Sources */}
+                            {product.sources && product.sources.length > 0 && (
                               <>
                                 <Separator className="my-4" />
                                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                                  <div className="flex items-start gap-2 mb-2">
-                                    <Info className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                                    <p className="text-sm font-semibold text-primary">Por que este score?</p>
+                                  <div className="flex items-start gap-2 mb-3">
+                                    <Link2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                    <p className="text-sm font-semibold text-primary">Fontes de Dados</p>
                                   </div>
-                                  <p className="text-sm leading-relaxed ml-6">
-                                    {product.score_justification}
-                                  </p>
+                                  <div className="flex flex-wrap gap-2 ml-6">
+                                    {product.sources.map((source: string, idx: number) => (
+                                      <Badge 
+                                        key={idx} 
+                                        variant="outline" 
+                                        className="bg-background border-primary/30"
+                                      >
+                                        {source}
+                                      </Badge>
+                                    ))}
+                                  </div>
                                 </div>
                               </>
                             )}
