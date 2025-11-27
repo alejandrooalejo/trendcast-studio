@@ -181,7 +181,7 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
       .from('analysis_products')
       .insert({
         analysis_id: analysisId,
-        image_url: imageBase64.substring(0, 200) + '...', // Store reference only
+        image_url: imageBase64, // Store full base64 image
         sku: sku || null,
         category: category || null,
         color: analysisData.detected_color,
