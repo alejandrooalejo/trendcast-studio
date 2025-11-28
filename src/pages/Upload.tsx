@@ -202,10 +202,10 @@ export default function Upload() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low': return 'text-green-600 bg-green-50 border-green-200';
-      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
-      case 'high': return 'text-red-600 bg-red-50 border-red-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'low': return 'text-foreground bg-secondary border-border';
+      case 'medium': return 'text-muted-foreground bg-muted border-border';
+      case 'high': return 'text-foreground bg-accent border-border';
+      default: return 'text-muted-foreground bg-muted border-border';
     }
   };
 
@@ -360,8 +360,8 @@ export default function Upload() {
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-border">
                       <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
                       {file.analysis && (
-                        <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center backdrop-blur-[1px]">
-                          <CheckCircle2 className="h-8 w-8 text-green-600" />
+                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
+                          <CheckCircle2 className="h-8 w-8 text-primary" />
                         </div>
                       )}
                     </div>
@@ -481,13 +481,7 @@ export default function Upload() {
                           </div>
                           <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                             <motion.div 
-                              className={`h-full ${
-                                Number(overallScore) >= 80 
-                                  ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                                  : Number(overallScore) >= 60
-                                  ? 'bg-gradient-to-r from-primary to-primary/70'
-                                  : 'bg-gradient-to-r from-destructive to-destructive/70'
-                              }`}
+                              className="h-full bg-primary transition-all"
                               initial={{ width: 0 }}
                               animate={{ width: `${overallScore}%` }}
                               transition={{ duration: 0.8, delay: index * 0.1 }}

@@ -12,12 +12,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
 const COLLECTION_TYPES = [
-  { value: "summer", label: "Verão", description: "Coleção leve e colorida", icon: Sun, color: "from-yellow-500 to-orange-500" },
-  { value: "winter", label: "Inverno", description: "Peças mais pesadas e escuras", icon: Snowflake, color: "from-blue-500 to-cyan-500" },
-  { value: "premium", label: "Premium", description: "Linha de luxo e alta qualidade", icon: Crown, color: "from-purple-500 to-pink-500" },
-  { value: "casual", label: "Casual", description: "Peças do dia a dia", icon: Coffee, color: "from-green-500 to-emerald-500" },
-  { value: "fast-fashion", label: "Fast Fashion", description: "Tendências rápidas e acessíveis", icon: Zap, color: "from-red-500 to-rose-500" },
-  { value: "athleisure", label: "Athleisure", description: "Esportivo e confortável", icon: Dumbbell, color: "from-indigo-500 to-blue-500" },
+  { value: "summer", label: "Verão", description: "Coleção leve e colorida", icon: Sun, color: "from-foreground to-foreground/70" },
+  { value: "winter", label: "Inverno", description: "Peças mais pesadas e escuras", icon: Snowflake, color: "from-foreground to-foreground/70" },
+  { value: "premium", label: "Premium", description: "Linha de luxo e alta qualidade", icon: Crown, color: "from-foreground to-foreground/70" },
+  { value: "casual", label: "Casual", description: "Peças do dia a dia", icon: Coffee, color: "from-foreground to-foreground/70" },
+  { value: "fast-fashion", label: "Fast Fashion", description: "Tendências rápidas e acessíveis", icon: Zap, color: "from-foreground to-foreground/70" },
+  { value: "athleisure", label: "Athleisure", description: "Esportivo e confortável", icon: Dumbbell, color: "from-foreground to-foreground/70" },
 ];
 
 const STEPS = [
@@ -273,7 +273,7 @@ export default function Trends() {
   return (
     <DashboardLayout>
       {/* Background Gradient */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+      <div className="fixed inset-0 -z-10 bg-background" />
       
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header com Gradiente */}
@@ -282,12 +282,11 @@ export default function Trends() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16 relative"
         >
-          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent blur-3xl" />
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg">
               <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-foreground">
               Nova Análise
             </h1>
           </div>
@@ -299,7 +298,7 @@ export default function Trends() {
           {/* Stepper Moderno */}
           <div className="relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-border" />
-            <div className="absolute top-5 left-0 h-0.5 bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
+            <div className="absolute top-5 left-0 h-0.5 bg-primary transition-all duration-500"
                  style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }} />
             
             <div className="relative flex justify-between">
@@ -313,9 +312,9 @@ export default function Trends() {
                     className={`
                       w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all shadow-lg
                       ${currentStep === step.id 
-                        ? 'bg-gradient-to-br from-primary to-primary/60 text-primary-foreground ring-4 ring-primary/20' 
+                        ? 'bg-primary text-primary-foreground ring-4 ring-primary/20' 
                         : currentStep > step.id 
-                        ? 'bg-primary text-primary-foreground' 
+                        ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground'
                       }
                     `}
@@ -370,12 +369,11 @@ export default function Trends() {
                               <RadioGroupItem value={type.value} id={type.value} className="peer sr-only" />
                               <Label
                                 htmlFor={type.value}
-                                className="relative flex flex-col items-start gap-3 p-5 rounded-xl border-2 border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-gradient-to-br peer-data-[state=checked]:from-primary/10 peer-data-[state=checked]:to-transparent group overflow-hidden"
+                                className="relative flex flex-col items-start gap-3 p-5 rounded-xl border-2 border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-accent group overflow-hidden"
                               >
-                                <div className={`absolute inset-0 bg-gradient-to-br ${type.color} opacity-0 peer-data-[state=checked]:opacity-5 transition-opacity`} />
                                 <div className="flex items-center gap-3 relative z-10">
-                                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${type.color} flex items-center justify-center shadow-md`}>
-                                    <type.icon className="h-5 w-5 text-white" />
+                                  <div className={`w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-md`}>
+                                    <type.icon className="h-5 w-5 text-primary-foreground" />
                                   </div>
                                   <div>
                                     <p className="font-semibold">{type.label}</p>
