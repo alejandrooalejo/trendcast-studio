@@ -75,12 +75,12 @@ export default function Results() {
   const getTrendIcon = (riskLevel: string) => {
     const riskLower = riskLevel?.toLowerCase();
     if (riskLower === "baixo" || riskLower === "low") {
-      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+      return <CheckCircle2 className="h-5 w-5 text-foreground" />;
     }
     if (riskLower === "alto" || riskLower === "high") {
-      return <AlertTriangle className="h-5 w-5 text-destructive" />;
+      return <AlertTriangle className="h-5 w-5 text-muted-foreground" />;
     }
-    return <AlertCircle className="h-5 w-5 text-primary" />;
+    return <AlertCircle className="h-5 w-5 text-foreground" />;
   };
 
   const getRiskBadge = (risk: string) => {
