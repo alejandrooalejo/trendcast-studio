@@ -32,6 +32,45 @@ serve(async (req) => {
     
     console.log('Starting product analysis for analysisId:', analysisId);
 
+    // Check if this exact image has already been analyzed for this analysisId
+    const { data: existingProduct, error: existingProductError } = await supabase
+      .from('analysis_products')
+      .select('*')
+      .eq('analysis_id', analysisId)
+      .eq('image_url', imageBase64)
+      .maybeSingle();
+
+    if (existingProductError && existingProductError.code !== 'PGRST116') {
+      console.error('Error checking existing product analysis:', existingProductError);
+    }
+
+    if (existingProduct) {
+      console.log('Found existing analysis for same image, reusing results:', existingProduct.id);
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          data: {
+            analysis_description: existingProduct.analysis_description,
+            detected_color: existingProduct.color,
+            detected_fabric: existingProduct.fabric,
+            risk_level: existingProduct.risk_level,
+            demand_projection: existingProduct.demand_score,
+            demand_calculation: existingProduct.score_justification,
+            estimated_market_price: existingProduct.estimated_price,
+            estimated_production_cost: existingProduct.estimated_production_cost,
+            insights: existingProduct.insights,
+            sources: existingProduct.sources,
+            recommended_quantity: existingProduct.recommended_quantity,
+            target_audience_size: existingProduct.target_audience_size,
+            projected_revenue: existingProduct.projected_revenue,
+            product_id: existingProduct.id,
+          },
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+    
     // Get trending data from database for this analysis
     const [colorsResult, fabricsResult, modelsResult] = await Promise.all([
       supabase.from('trending_colors').select('*').eq('analysis_id', analysisId),
