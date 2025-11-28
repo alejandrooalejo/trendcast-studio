@@ -63,6 +63,14 @@ export default function ProductDetails() {
     return "default";
   };
 
+  const getRiskLabel = (risk: string) => {
+    const riskLower = risk?.toLowerCase();
+    if (riskLower === "alto" || riskLower === "high") return "Alto Risco";
+    if (riskLower === "baixo" || riskLower === "low") return "Baixo Risco";
+    if (riskLower === "medio" || riskLower === "medium" || riskLower === "médio") return "Risco Moderado";
+    return "Risco Desconhecido";
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -153,7 +161,7 @@ export default function ProductDetails() {
                   >
                     <div className="flex items-center gap-1.5">
                       {getTrendIcon(product.risk_level)}
-                      {product.risk_level}
+                      {getRiskLabel(product.risk_level)}
                     </div>
                   </Badge>
                 )}
@@ -196,13 +204,7 @@ export default function ProductDetails() {
                 </div>
                 <div className="h-4 bg-muted rounded-full overflow-hidden border border-border">
                   <motion.div
-                    className={`h-full transition-colors ${
-                      product.demand_score >= 80
-                        ? "bg-gradient-to-r from-green-500 to-green-600"
-                        : product.demand_score >= 60
-                        ? "bg-gradient-to-r from-primary to-primary/80"
-                        : "bg-gradient-to-r from-destructive to-destructive/80"
-                    }`}
+                    className="h-full bg-primary transition-colors"
                     initial={{ width: 0 }}
                     animate={{ width: `${product.demand_score}%` }}
                     transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
