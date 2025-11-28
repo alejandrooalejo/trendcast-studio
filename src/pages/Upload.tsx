@@ -225,11 +225,16 @@ export default function Upload() {
         error: errorMessage
       });
     } finally {
-      // Check if all files are done analyzing
-      const stillAnalyzing = files.some(f => f.analyzing && f.id !== fileId);
-      if (!stillAnalyzing) {
-        setIsAnalyzing(false);
-      }
+      // Check if all files are done analyzing using a more reliable approach
+      setTimeout(() => {
+        setFiles(currentFiles => {
+          const stillAnalyzing = currentFiles.some(f => f.analyzing);
+          if (!stillAnalyzing) {
+            setIsAnalyzing(false);
+          }
+          return currentFiles;
+        });
+      }, 100);
     }
   };
 

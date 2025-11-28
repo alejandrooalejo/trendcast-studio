@@ -32,7 +32,7 @@ export default function ProductDetails() {
         .from("analysis_products")
         .select("*")
         .eq("id", productId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       setProduct(data);

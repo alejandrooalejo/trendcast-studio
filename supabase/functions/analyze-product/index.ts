@@ -348,9 +348,15 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
 
     // Extract and validate required fields, normalizing types
     const rawDemandScore = Number(analysisData.demand_projection ?? 0);
-    const demandScore = Number.isFinite(rawDemandScore) ? Math.round(rawDemandScore) : 0;
+    const demandScore = Number.isFinite(rawDemandScore) ? Math.max(0, Math.min(100, Math.round(rawDemandScore))) : 0;
     const estimatedPrice = Number(analysisData.estimated_market_price ?? 0) || 0;
     const productionCost = Number(analysisData.estimated_production_cost ?? 0) || 0;
+    
+    // Validate critical data
+    if (!analysisData.detected_color || !analysisData.detected_fabric || !analysisData.risk_level) {
+      console.error('Missing critical analysis data:', analysisData);
+      throw new Error('Análise incompleta: dados críticos ausentes');
+    }
     
     console.log('Extracted values:', {
       demandScore,
