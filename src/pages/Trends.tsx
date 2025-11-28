@@ -1,29 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Palette, Shirt, Upload as UploadIcon, X, Ruler, ChevronRight, ChevronLeft, Sun, Snowflake, Crown, Coffee, Zap, Dumbbell } from "lucide-react";
+import { Sparkles, Palette, Shirt, Upload as UploadIcon, X, Ruler, ChevronRight, ChevronLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const COLLECTION_TYPES = [
-  { value: "summer", label: "Verão", description: "Coleção leve e colorida", icon: Sun, color: "from-amber-300 to-orange-300" },
-  { value: "winter", label: "Inverno", description: "Peças mais pesadas e escuras", icon: Snowflake, color: "from-sky-300 to-cyan-300" },
-  { value: "premium", label: "Premium", description: "Linha de luxo e alta qualidade", icon: Crown, color: "from-purple-300 to-pink-300" },
-  { value: "casual", label: "Casual", description: "Peças do dia a dia", icon: Coffee, color: "from-emerald-300 to-teal-300" },
-  { value: "fast-fashion", label: "Fast Fashion", description: "Tendências rápidas e acessíveis", icon: Zap, color: "from-rose-300 to-pink-300" },
-  { value: "athleisure", label: "Athleisure", description: "Esportivo e confortável", icon: Dumbbell, color: "from-indigo-300 to-blue-300" },
-];
-
 const STEPS = [
-  { id: 1, title: "Tipo de Coleção", description: "Identifique sua coleção" },
-  { id: 2, title: "Produtos", description: "Upload de produtos" },
-  { id: 3, title: "Parâmetros IA", description: "Configure a análise" },
+  { id: 1, title: "Produtos", description: "Upload de produtos" },
+  { id: 2, title: "Parâmetros IA", description: "Configure a análise" },
 ];
 
 interface Product {
@@ -44,7 +35,7 @@ export default function Trends() {
   
   // Form data
   const [collectionName, setCollectionName] = useState("");
-  const [collectionType, setCollectionType] = useState("");
+  const [collectionType] = useState("casual"); // Default value
   const [products, setProducts] = useState<Product[]>([]);
   const [focusColors, setFocusColors] = useState(true);
   const [focusFabrics, setFocusFabrics] = useState(true);
@@ -102,10 +93,8 @@ export default function Trends() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return collectionName && collectionType;
+        return collectionName && products.length > 0;
       case 2:
-        return products.length > 0;
-      case 3:
         return true;
       default:
         return false;
@@ -344,9 +333,9 @@ export default function Trends() {
                 transition={{ duration: 0.3 }}
                 className="space-y-8"
               >
-                {/* Step 1: Collection Info */}
+                {/* Step 1: Product Upload */}
                 {currentStep === 1 && (
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     <div className="space-y-3">
                       <Label htmlFor="collection-name" className="text-sm font-medium">
                         Nome da Peça
@@ -359,77 +348,47 @@ export default function Trends() {
                         className="h-12 text-base border-2 focus:ring-2 focus:ring-primary/20"
                       />
                     </div>
-
-                    <div className="space-y-4">
-                      <Label className="text-sm font-medium">Tipo de coleção</Label>
-                      <RadioGroup value={collectionType} onValueChange={setCollectionType}>
-                        <div className="grid grid-cols-2 gap-3">
-                          {COLLECTION_TYPES.map((type) => (
-                            <div key={type.value}>
-                              <RadioGroupItem value={type.value} id={type.value} className="peer sr-only" />
-                              <Label
-                                htmlFor={type.value}
-                                className="relative flex flex-col items-start gap-3 p-5 rounded-xl border-2 border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-gradient-to-br peer-data-[state=checked]:from-primary/5 peer-data-[state=checked]:to-transparent group overflow-hidden"
-                              >
-                                <div className={`absolute inset-0 bg-gradient-to-br ${type.color} opacity-0 peer-data-[state=checked]:opacity-10 transition-opacity`} />
-                                <div className="flex items-center gap-3 relative z-10">
-                                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${type.color} flex items-center justify-center shadow-md`}>
-                                    <type.icon className="h-5 w-5 text-white" />
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold">{type.label}</p>
-                                    <p className="text-xs text-muted-foreground">{type.description}</p>
-                                  </div>
-                                </div>
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </RadioGroup>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2: Product Upload */}
-                {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div
-                      className={`relative border-2 border-dashed rounded-2xl p-16 text-center transition-all overflow-hidden ${
-                        dragActive ? "border-primary bg-primary/10 scale-[1.01]" : "border-border/50 hover:border-primary/30"
-                      }`}
-                      onDragEnter={handleDrag}
-                      onDragLeave={handleDrag}
-                      onDragOver={handleDrag}
-                      onDrop={handleDrop}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleFileInput}
-                        className="hidden"
-                        id="file-upload"
-                      />
-                      <motion.div
-                        animate={{ y: dragActive ? -5 : 0 }}
-                        transition={{ type: "spring", stiffness: 300 }}
+                    
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Upload de Imagens</Label>
+                      <div
+                        className={`relative border-2 border-dashed rounded-2xl p-16 text-center transition-all overflow-hidden ${
+                          dragActive ? "border-primary bg-primary/10 scale-[1.01]" : "border-border/50 hover:border-primary/30"
+                        }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
                       >
-                        <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <UploadIcon className={`h-10 w-10 transition-all ${dragActive ? 'text-primary scale-110' : 'text-primary/60'}`} />
-                        </div>
-                        <h3 className="text-xl font-semibold mb-2">Arraste suas imagens</h3>
-                        <p className="text-sm text-muted-foreground mb-6">ou clique no botão abaixo</p>
-                        <Button
-                          type="button"
-                          size="lg"
-                          onClick={() => document.getElementById("file-upload")?.click()}
-                          className="relative overflow-hidden group"
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity" />
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileInput}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <motion.div
+                          animate={{ y: dragActive ? -5 : 0 }}
+                          transition={{ type: "spring", stiffness: 300 }}
                         >
-                          <span className="relative z-10">Selecionar Arquivos</span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/20 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-                        </Button>
-                      </motion.div>
+                          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                            <UploadIcon className={`h-10 w-10 transition-all ${dragActive ? 'text-primary scale-110' : 'text-primary/60'}`} />
+                          </div>
+                          <h3 className="text-xl font-semibold mb-2">Arraste suas imagens</h3>
+                          <p className="text-sm text-muted-foreground mb-6">ou clique no botão abaixo</p>
+                          <Button
+                            type="button"
+                            size="lg"
+                            onClick={() => document.getElementById("file-upload")?.click()}
+                            className="relative overflow-hidden group"
+                          >
+                            <span className="relative z-10">Selecionar Arquivos</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/20 to-primary/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                          </Button>
+                        </motion.div>
+                      </div>
                     </div>
 
                     {products.length > 0 && (
@@ -490,8 +449,8 @@ export default function Trends() {
                   </div>
                 )}
 
-                {/* Step 3: AI Parameters */}
-                {currentStep === 3 && (
+                {/* Step 2: AI Parameters */}
+                {currentStep === 2 && (
                   <div className="space-y-8">
                     <div className="space-y-4">
                       <Label className="text-sm font-medium">Focos da Análise</Label>
