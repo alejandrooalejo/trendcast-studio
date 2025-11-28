@@ -35,7 +35,7 @@ export function StatCard({ title, value, description, icon: Icon, trend, delay =
           )}
           {trend && (
             <div className="flex items-center mt-2">
-              <span className={`text-xs font-medium ${trend.isPositive ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`text-xs font-medium ${trend.isPositive ? 'text-emerald-500' : 'text-rose-400'}`}>
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </span>
               <span className="text-xs text-muted-foreground ml-1">vs. mês anterior</span>
