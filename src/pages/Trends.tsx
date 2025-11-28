@@ -329,388 +329,277 @@ export default function Trends() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-semibold text-foreground font-display">Análise de Tendências IA</h1>
-            <p className="text-muted-foreground mt-2">
-              {showResults ? "Resultados da sua análise" : "Crie análises inteligentes para prever tendências"}
-            </p>
-          </div>
-          {showResults && (
-            <Button onClick={handleNewAnalysis} variant="outline">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {/* Header - Minimalista */}
+        {!showResults && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-3xl font-semibold mb-2">Nova Análise</h1>
+            <p className="text-sm text-muted-foreground">Configure sua análise de tendências</p>
+          </motion.div>
+        )}
+        
+        {showResults && (
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-semibold">Resultados</h1>
+            <Button onClick={handleNewAnalysis} variant="ghost" size="sm">
               <Sparkles className="mr-2 h-4 w-4" />
-              Nova Análise
+              Nova
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         {!showResults ? (
-          /* Wizard Form */
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle className="text-2xl font-display flex items-center gap-2">
-                <Sparkles className="h-6 w-6 text-primary" />
-                Nova Análise
-              </CardTitle>
-              <CardDescription>Configure sua análise de tendências de moda</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Progress Bar */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  {STEPS.map((step) => (
-                    <div
-                      key={step.id}
-                      className={`flex-1 text-center ${
-                        currentStep === step.id
-                          ? "text-primary font-medium"
-                          : currentStep > step.id
-                          ? "text-muted-foreground"
-                          : "text-muted-foreground/50"
-                      }`}
-                    >
-                      <div className="font-medium">{step.title}</div>
-                      <div className="text-xs">{step.description}</div>
-                    </div>
-                  ))}
+          /* Wizard Form - Minimalista */
+          <div className="space-y-8">
+            {/* Stepper Minimalista */}
+            <div className="flex items-center justify-center gap-3">
+              {STEPS.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all
+                    ${currentStep === step.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : currentStep > step.id 
+                      ? 'bg-primary/20 text-primary' 
+                      : 'bg-muted text-muted-foreground'
+                    }
+                  `}>
+                    {step.id}
+                  </div>
+                  {index < STEPS.length - 1 && (
+                    <div className={`w-12 h-px mx-2 ${currentStep > step.id ? 'bg-primary' : 'bg-border'}`} />
+                  )}
                 </div>
-                <Progress value={progress} className="h-2" />
-              </div>
+              ))}
+            </div>
 
-              {/* Step Content */}
-              <div className="min-h-[400px]">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentStep}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {/* Step 1: Collection Info */}
-                    {currentStep === 1 && (
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-display font-medium mb-4">Identifique sua Coleção</h3>
-                          <p className="text-sm text-muted-foreground mb-6">
-                            Dê um nome à sua coleção e selecione o tipo para uma análise mais precisa.
-                          </p>
-                        </div>
+            {/* Step Content - Minimalista */}
+            <div className="min-h-[300px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-8"
+                >
+                  {/* Step 1: Collection Info */}
+                  {currentStep === 1 && (
+                    <div className="space-y-8">
+                      <div className="space-y-2">
+                        <Label htmlFor="collection-name" className="text-xs font-medium text-muted-foreground">
+                          Nome da coleção
+                        </Label>
+                        <Input
+                          id="collection-name"
+                          placeholder="Ex: Verão 2024"
+                          value={collectionName}
+                          onChange={(e) => setCollectionName(e.target.value)}
+                          className="h-11 border-border/50"
+                        />
+                      </div>
 
-                        <div className="space-y-2">
-                          <Label htmlFor="collection-name">Nome da Coleção</Label>
-                          <Input
-                            id="collection-name"
-                            placeholder="Ex: Coleção Verão 2024"
-                            value={collectionName}
-                            onChange={(e) => setCollectionName(e.target.value)}
-                            className="text-base"
-                          />
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label>Tipo de Coleção</Label>
-                          <RadioGroup value={collectionType} onValueChange={setCollectionType} className="grid gap-3">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-medium text-muted-foreground">Tipo</Label>
+                        <RadioGroup value={collectionType} onValueChange={setCollectionType}>
+                          <div className="flex flex-wrap gap-2">
                             {COLLECTION_TYPES.map((type) => (
                               <div key={type.value}>
                                 <RadioGroupItem value={type.value} id={type.value} className="peer sr-only" />
                                 <Label
                                   htmlFor={type.value}
-                                  className="flex items-start gap-4 p-4 rounded-lg border-2 border-muted cursor-pointer transition-all hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
+                                  className="inline-flex items-center px-4 py-2 rounded-full border border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground text-sm"
                                 >
-                                  <div className="flex-1">
-                                    <div className="font-medium mb-1">{type.label}</div>
-                                    <div className="text-sm text-muted-foreground">{type.description}</div>
-                                  </div>
+                                  {type.label}
                                 </Label>
                               </div>
                             ))}
-                          </RadioGroup>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 2: Product Upload */}
-                    {currentStep === 2 && (
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-display font-medium mb-4">Upload de Produtos</h3>
-                          <p className="text-sm text-muted-foreground mb-6">
-                            Faça upload das fotos dos produtos que deseja analisar.
-                          </p>
-                        </div>
-
-                        <div
-                          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                            dragActive ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
-                          }`}
-                          onDragEnter={handleDrag}
-                          onDragLeave={handleDrag}
-                          onDragOver={handleDrag}
-                          onDrop={handleDrop}
-                        >
-                          <input
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            onChange={handleFileInput}
-                            className="hidden"
-                            id="file-upload"
-                          />
-
-                          <UploadIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                          <p className="text-sm font-medium mb-2">Arraste e solte suas imagens aqui</p>
-                          <p className="text-xs text-muted-foreground mb-4">ou clique no botão abaixo</p>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => document.getElementById("file-upload")?.click()}
+                          </div>
+                        </RadioGroup>
+                        {collectionType && (
+                          <motion.p 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-xs text-muted-foreground"
                           >
-                            Selecionar Arquivos
-                          </Button>
-                        </div>
-
-                        {products.length > 0 && (
-                          <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                              <Label className="text-base">Produtos ({products.length})</Label>
-                            </div>
-
-                            <div className="grid gap-4">
-                              {products.map((product) => (
-                                <div key={product.id} className="flex gap-4 p-4 border rounded-lg bg-card">
-                                  <div className="relative w-20 h-20 flex-shrink-0">
-                                    <img src={product.preview} alt="Preview" className="w-full h-full object-cover rounded" />
-                                    <button
-                                      onClick={() => removeProduct(product.id)}
-                                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </div>
-
-                                  <div className="flex-1 grid grid-cols-2 gap-3">
-                                    <div>
-                                      <Label className="text-xs">Categoria</Label>
-                                      <Select
-                                        value={product.category}
-                                        onValueChange={(value) => updateProduct(product.id, "category", value)}
-                                      >
-                                        <SelectTrigger className="h-9">
-                                          <SelectValue placeholder="Selecione" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="camiseta">Camiseta</SelectItem>
-                                          <SelectItem value="calca">Calça</SelectItem>
-                                          <SelectItem value="vestido">Vestido</SelectItem>
-                                          <SelectItem value="jaqueta">Jaqueta</SelectItem>
-                                          <SelectItem value="saia">Saia</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-xs">Tecido</Label>
-                                      <Input
-                                        placeholder="Ex: Algodão"
-                                        value={product.fabric}
-                                        onChange={(e) => updateProduct(product.id, "fabric", e.target.value)}
-                                        className="h-9"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-xs">Cor</Label>
-                                      <Input
-                                        placeholder="Ex: Azul"
-                                        value={product.color}
-                                        onChange={(e) => updateProduct(product.id, "color", e.target.value)}
-                                        className="h-9"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <Label className="text-xs">SKU</Label>
-                                      <Input
-                                        placeholder="Ex: SKU-001"
-                                        value={product.sku}
-                                        onChange={(e) => updateProduct(product.id, "sku", e.target.value)}
-                                        className="h-9"
-                                      />
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {products.length === 0 && (
-                          <div className="text-center py-8 text-sm text-muted-foreground">
-                            Nenhum produto adicionado ainda
-                          </div>
+                            {COLLECTION_TYPES.find(t => t.value === collectionType)?.description}
+                          </motion.p>
                         )}
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {/* Step 3: AI Parameters */}
-                    {currentStep === 3 && (
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-display font-medium mb-4">Parâmetros da Análise IA</h3>
-                          <p className="text-sm text-muted-foreground mb-6">
-                            Configure o foco e a profundidade da análise de inteligência artificial.
-                          </p>
-                        </div>
+                  {/* Step 2: Product Upload - Minimalista */}
+                  {currentStep === 2 && (
+                    <div className="space-y-6">
+                      <div
+                        className={`border border-dashed rounded-xl p-12 text-center transition-all ${
+                          dragActive ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/30"
+                        }`}
+                        onDragEnter={handleDrag}
+                        onDragLeave={handleDrag}
+                        onDragOver={handleDrag}
+                        onDrop={handleDrop}
+                      >
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileInput}
+                          className="hidden"
+                          id="file-upload"
+                        />
+                        <UploadIcon className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
+                        <p className="text-sm mb-3">Arraste imagens ou</p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => document.getElementById("file-upload")?.click()}
+                        >
+                          Selecionar
+                        </Button>
+                      </div>
 
-                        <div className="space-y-4">
-                          <Label className="text-base">Focos da Análise</Label>
-                          <p className="text-sm text-muted-foreground">Selecione em quais aspectos a IA deve focar</p>
-
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                  <Palette className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                  <Label htmlFor="focus-colors" className="text-sm font-medium cursor-pointer">
-                                    Análise de Cores
-                                  </Label>
-                                  <p className="text-xs text-muted-foreground">Tendências cromáticas e combinações</p>
-                                </div>
-                              </div>
-                              <Switch id="focus-colors" checked={focusColors} onCheckedChange={setFocusColors} />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                  <Shirt className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                  <Label htmlFor="focus-fabrics" className="text-sm font-medium cursor-pointer">
-                                    Análise de Tecidos
-                                  </Label>
-                                  <p className="text-xs text-muted-foreground">Materiais mais buscados e valorizados</p>
-                                </div>
-                              </div>
-                              <Switch id="focus-fabrics" checked={focusFabrics} onCheckedChange={setFocusFabrics} />
-                            </div>
-
-                            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                  <Ruler className="h-5 w-5 text-primary" />
-                                </div>
-                                <div>
-                                  <Label htmlFor="focus-models" className="text-sm font-medium cursor-pointer">
-                                    Análise de Modelagens
-                                  </Label>
-                                  <p className="text-xs text-muted-foreground">Cortes, silhuetas e estilos em alta</p>
-                                </div>
-                              </div>
-                              <Switch id="focus-models" checked={focusModels} onCheckedChange={setFocusModels} />
-                            </div>
-                          </div>
-                        </div>
-
+                      {products.length > 0 && (
                         <div className="space-y-3">
-                          <Label className="text-base">Profundidade da Análise</Label>
-                          <RadioGroup value={analysisDepth} onValueChange={setAnalysisDepth} className="grid gap-3">
-                            <div>
-                              <RadioGroupItem value="quick" id="quick" className="peer sr-only" />
-                              <Label
-                                htmlFor="quick"
-                                className="flex items-center gap-4 p-4 rounded-lg border-2 border-muted cursor-pointer transition-all hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium mb-1">Análise Rápida</div>
-                                  <div className="text-sm text-muted-foreground">Insights básicos em poucos minutos</div>
-                                </div>
-                              </Label>
+                          <p className="text-xs text-muted-foreground">{products.length} produto(s)</p>
+                          {products.map((product) => (
+                            <div key={product.id} className="flex gap-3 p-3 border border-border/50 rounded-lg">
+                              <div className="relative w-16 h-16 flex-shrink-0">
+                                <img src={product.preview} alt="Preview" className="w-full h-full object-cover rounded" />
+                                <button
+                                  onClick={() => removeProduct(product.id)}
+                                  className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </div>
+                              <div className="flex-1 grid grid-cols-2 gap-2 text-xs">
+                                <Select
+                                  value={product.category}
+                                  onValueChange={(value) => updateProduct(product.id, "category", value)}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Categoria" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="camiseta">Camiseta</SelectItem>
+                                    <SelectItem value="calca">Calça</SelectItem>
+                                    <SelectItem value="vestido">Vestido</SelectItem>
+                                    <SelectItem value="jaqueta">Jaqueta</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Input
+                                  placeholder="SKU"
+                                  value={product.sku}
+                                  onChange={(e) => updateProduct(product.id, "sku", e.target.value)}
+                                  className="h-8 text-xs"
+                                />
+                              </div>
                             </div>
-                            <div>
-                              <RadioGroupItem value="standard" id="standard" className="peer sr-only" />
-                              <Label
-                                htmlFor="standard"
-                                className="flex items-center gap-4 p-4 rounded-lg border-2 border-muted cursor-pointer transition-all hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium mb-1">Análise Standard</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    Balanceada entre velocidade e profundidade
-                                  </div>
-                                </div>
-                              </Label>
-                            </div>
-                            <div>
-                              <RadioGroupItem value="deep" id="deep" className="peer sr-only" />
-                              <Label
-                                htmlFor="deep"
-                                className="flex items-center gap-4 p-4 rounded-lg border-2 border-muted cursor-pointer transition-all hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                              >
-                                <div className="flex-1">
-                                  <div className="font-medium mb-1">Análise Profunda</div>
-                                  <div className="text-sm text-muted-foreground">Máxima precisão com análise detalhada</div>
-                                </div>
-                              </Label>
-                            </div>
-                          </RadioGroup>
+                          ))}
                         </div>
+                      )}
+                    </div>
+                  )}
 
-                        <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
-                          <div className="flex items-start gap-3">
-                            <Sparkles className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                            <div className="text-sm">
-                              <p className="font-medium mb-1">Pronto para gerar análise!</p>
-                              <p className="text-muted-foreground">
-                                A IA analisará {products.length} produto(s) focando em{" "}
-                                {[
-                                  focusColors && "cores",
-                                  focusFabrics && "tecidos",
-                                  focusModels && "modelagens",
-                                ]
-                                  .filter(Boolean)
-                                  .join(", ")}{" "}
-                                com profundidade {analysisDepth}.
-                              </p>
-                            </div>
-                          </div>
+                  {/* Step 3: AI Parameters - Minimalista */}
+                  {currentStep === 3 && (
+                    <div className="space-y-8">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-medium text-muted-foreground">Focos</Label>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => setFocusColors(!focusColors)}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition-all ${
+                              focusColors
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border/50 hover:border-primary/50"
+                            }`}
+                          >
+                            <Palette className="h-4 w-4" />
+                            Cores
+                          </button>
+                          <button
+                            onClick={() => setFocusFabrics(!focusFabrics)}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition-all ${
+                              focusFabrics
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border/50 hover:border-primary/50"
+                            }`}
+                          >
+                            <Shirt className="h-4 w-4" />
+                            Tecidos
+                          </button>
+                          <button
+                            onClick={() => setFocusModels(!focusModels)}
+                            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm transition-all ${
+                              focusModels
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border/50 hover:border-primary/50"
+                            }`}
+                          >
+                            <Ruler className="h-4 w-4" />
+                            Modelagens
+                          </button>
                         </div>
                       </div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
 
-              {/* Navigation */}
-              <div className="flex justify-between items-center pt-4 border-t">
-                <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
-                  <ChevronLeft className="h-4 w-4 mr-2" />
+                      <div className="space-y-3">
+                        <Label className="text-xs font-medium text-muted-foreground">Profundidade</Label>
+                        <RadioGroup value={analysisDepth} onValueChange={setAnalysisDepth}>
+                          <div className="flex gap-2">
+                            {[
+                              { value: "quick", label: "Rápida" },
+                              { value: "standard", label: "Standard" },
+                              { value: "deep", label: "Profunda" },
+                            ].map((option) => (
+                              <div key={option.value} className="flex-1">
+                                <RadioGroupItem value={option.value} id={option.value} className="peer sr-only" />
+                                <Label
+                                  htmlFor={option.value}
+                                  className="block px-4 py-3 text-center rounded-lg border border-border/50 cursor-pointer transition-all hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary peer-data-[state=checked]:text-primary-foreground text-sm"
+                                >
+                                  {option.label}
+                                </Label>
+                              </div>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation - Minimalista */}
+            <div className="flex justify-between items-center pt-6">
+              {currentStep > 1 ? (
+                <Button variant="ghost" size="sm" onClick={handleBack}>
+                  <ChevronLeft className="h-4 w-4 mr-1" />
                   Voltar
                 </Button>
+              ) : <div />}
 
-                <div className="text-sm text-muted-foreground">
-                  Passo {currentStep} de {STEPS.length}
-                </div>
-
-                {currentStep < STEPS.length ? (
-                  <Button onClick={handleNext} disabled={!canProceed()}>
-                    Próximo
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
-                ) : (
-                  <Button onClick={handleGenerateAnalysis} disabled={!canProceed() || loading}>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    {loading ? "Gerando Análise..." : "Gerar Análise"}
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              {currentStep < STEPS.length ? (
+                <Button onClick={handleNext} disabled={!canProceed()} size="sm">
+                  Próximo
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              ) : (
+                <Button onClick={handleGenerateAnalysis} disabled={!canProceed() || loading} size="sm">
+                  {loading ? "Gerando..." : "Gerar Análise"}
+                </Button>
+              )}
+            </div>
+          </div>
         ) : (
           /* Results Section */
           <motion.div
