@@ -6,8 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,10 +19,6 @@ interface Product {
   id: string;
   file: File;
   preview: string;
-  category: string;
-  fabric: string;
-  color: string;
-  sku: string;
 }
 
 export default function Trends() {
@@ -74,20 +68,12 @@ export default function Trends() {
       id: Math.random().toString(36).substring(7),
       file,
       preview: URL.createObjectURL(file),
-      category: "",
-      fabric: "",
-      color: "",
-      sku: "",
     }));
     setProducts([...products, ...newProducts]);
   };
 
   const removeProduct = (id: string) => {
     setProducts(products.filter((p) => p.id !== id));
-  };
-
-  const updateProduct = (id: string, field: string, value: string) => {
-    setProducts(products.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
   };
 
   const canProceed = () => {
@@ -194,10 +180,7 @@ export default function Trends() {
               body: {
                 analysisId,
                 imageBase64,
-                sku: product.sku || `produto-${product.id}`,
-                category: product.category,
-                fabric: product.fabric,
-                color: product.color,
+                sku: `produto-${product.id}`,
               }
             });
 
@@ -395,55 +378,33 @@ export default function Trends() {
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="space-y-3"
+                        className="space-y-4"
                       >
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
                             <span className="text-sm font-bold text-primary">{products.length}</span>
                           </div>
                           <p className="text-sm font-medium">produto(s) adicionado(s)</p>
                         </div>
+                        <div className="flex flex-wrap gap-3">
                         {products.map((product, idx) => (
                           <motion.div
                             key={product.id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="flex gap-4 p-4 border-2 border-border/50 rounded-xl hover:border-primary/30 hover:bg-accent/30 transition-all group"
+                            className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-border/50 hover:border-primary/30 transition-all group"
                           >
-                            <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-border">
-                              <img src={product.preview} alt="Preview" className="w-full h-full object-cover" />
-                              <button
-                                onClick={() => removeProduct(product.id)}
-                                className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                            <div className="flex-1 grid grid-cols-2 gap-2">
-                              <Select
-                                value={product.category}
-                                onValueChange={(value) => updateProduct(product.id, "category", value)}
-                              >
-                                <SelectTrigger className="h-9 text-xs border-border/50">
-                                  <SelectValue placeholder="Categoria" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="camiseta">Camiseta</SelectItem>
-                                  <SelectItem value="calca">Calça</SelectItem>
-                                  <SelectItem value="vestido">Vestido</SelectItem>
-                                  <SelectItem value="jaqueta">Jaqueta</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <Input
-                                placeholder="SKU"
-                                value={product.sku}
-                                onChange={(e) => updateProduct(product.id, "sku", e.target.value)}
-                                className="h-9 text-xs border-border/50"
-                              />
-                            </div>
+                            <img src={product.preview} alt="Preview" className="w-full h-full object-cover" />
+                            <button
+                              onClick={() => removeProduct(product.id)}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
                           </motion.div>
                         ))}
+                        </div>
                       </motion.div>
                     )}
                   </div>
