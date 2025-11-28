@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload as UploadIcon, X, Sparkles, AlertTriangle, CheckCircle2, Trophy } from "lucide-react";
+import { Upload as UploadIcon, X, Sparkles, AlertTriangle, CheckCircle2, Trophy, Loader2, AlertCircle, ImageOff, FileWarning } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -20,6 +20,7 @@ interface UploadedFile {
   category: string;
   sku: string;
   analyzing: boolean;
+  error?: string;
   analysis?: ProductAnalysis;
 }
 
@@ -121,19 +122,39 @@ export default function Upload() {
     const newFiles: UploadedFile[] = [];
     
     for (const file of fileList) {
-      const base64 = await fileToBase64(file);
-      newFiles.push({
-        id: Math.random().toString(),
-        name: file.name,
-        preview: base64,
-        base64: base64,
-        category: "",
-        sku: "",
-        analyzing: false,
-      });
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`Arquivo ${file.name} muito grande. Máximo: 10MB`);
+        continue;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(`Arquivo ${file.name} não é uma imagem válida`);
+        continue;
+      }
+      
+      try {
+        const base64 = await fileToBase64(file);
+        newFiles.push({
+          id: Math.random().toString(),
+          name: file.name,
+          preview: base64,
+          base64: base64,
+          category: "",
+          sku: "",
+          analyzing: false,
+        });
+      } catch (error) {
+        toast.error(`Erro ao processar ${file.name}`);
+        console.error('Error processing file:', error);
+      }
     }
     
-    setFiles([...files, ...newFiles]);
+    if (newFiles.length > 0) {
+      setFiles([...files, ...newFiles]);
+      toast.success(`${newFiles.length} ${newFiles.length === 1 ? 'imagem adicionada' : 'imagens adicionadas'}`);
+    }
   };
 
   const removeFile = (id: string) => {
@@ -153,7 +174,7 @@ export default function Upload() {
     const file = files.find(f => f.id === fileId);
     if (!file) return;
 
-    updateFile(fileId, { analyzing: true });
+    updateFile(fileId, { analyzing: true, error: undefined });
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-product', {
@@ -170,7 +191,8 @@ export default function Upload() {
       if (data.success) {
         updateFile(fileId, { 
           analyzing: false, 
-          analysis: data.data 
+          analysis: data.data,
+          error: undefined
         });
         toast.success("Análise concluída!");
       } else {
@@ -178,8 +200,27 @@ export default function Upload() {
       }
     } catch (error: any) {
       console.error('Error analyzing product:', error);
-      toast.error(error.message || 'Erro ao analisar produto');
-      updateFile(fileId, { analyzing: false });
+      
+      let errorMessage = 'Erro ao analisar produto';
+      
+      // Provide specific error messages
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        errorMessage = 'Muitas requisições. Aguarde alguns segundos';
+      } else if (error.message?.includes('payment') || error.message?.includes('402')) {
+        errorMessage = 'Créditos insuficientes';
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        errorMessage = 'Erro de conexão. Verifique sua internet';
+      } else if (error.message?.includes('image') || error.message?.includes('invalid')) {
+        errorMessage = 'Imagem inválida ou corrompida';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      updateFile(fileId, { 
+        analyzing: false,
+        error: errorMessage
+      });
     }
   };
 
@@ -359,9 +400,26 @@ export default function Upload() {
                     {/* Image */}
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-border">
                       <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
-                      {file.analysis && (
+                      
+                      {/* Loading overlay */}
+                      {file.analyzing && (
+                        <div className="absolute inset-0 bg-primary/90 flex flex-col items-center justify-center backdrop-blur-sm">
+                          <Loader2 className="h-6 w-6 text-white animate-spin mb-1" />
+                          <span className="text-xs text-white font-medium">Analisando</span>
+                        </div>
+                      )}
+                      
+                      {/* Success overlay */}
+                      {file.analysis && !file.analyzing && (
                         <div className="absolute inset-0 bg-emerald-500/15 flex items-center justify-center backdrop-blur-[1px]">
                           <CheckCircle2 className="h-8 w-8 text-emerald-600" />
+                        </div>
+                      )}
+                      
+                      {/* Error overlay */}
+                      {file.error && !file.analyzing && (
+                        <div className="absolute inset-0 bg-rose-500/15 flex items-center justify-center backdrop-blur-[1px]">
+                          <AlertCircle className="h-8 w-8 text-rose-600" />
                         </div>
                       )}
                     </div>
@@ -398,15 +456,46 @@ export default function Upload() {
                         </div>
                       </div>
 
+                      {/* Error message */}
+                      {file.error && (
+                        <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 flex items-start gap-2">
+                          <AlertCircle className="h-4 w-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-rose-900">Erro na análise</p>
+                            <p className="text-xs text-rose-700 mt-0.5">{file.error}</p>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex gap-2">
                         <Button
                           onClick={() => analyzeProduct(file.id)}
                           disabled={file.analyzing || !analysisId}
                           size="sm"
-                          variant={file.analysis ? "secondary" : "default"}
+                          variant={file.analysis ? "secondary" : file.error ? "destructive" : "default"}
                           className="flex-1 sm:flex-none"
                         >
-                          {file.analyzing ? "Analisando..." : file.analysis ? "✓ Analisado" : "Analisar"}
+                          {file.analyzing ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Analisando...
+                            </>
+                          ) : file.analysis ? (
+                            <>
+                              <CheckCircle2 className="mr-2 h-4 w-4" />
+                              Analisado
+                            </>
+                          ) : file.error ? (
+                            <>
+                              <AlertCircle className="mr-2 h-4 w-4" />
+                              Tentar novamente
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              Analisar
+                            </>
+                          )}
                         </Button>
                         <Button
                           variant="ghost"
