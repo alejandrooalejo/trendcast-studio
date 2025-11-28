@@ -50,19 +50,18 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border/40 bg-background/95 backdrop-blur w-64">
-      <SidebarContent className="gap-0 p-6">
+    <Sidebar className="border-r border-border bg-background w-64">
+      <SidebarContent className="p-6">
         {/* Header da Sidebar */}
-        <div className="px-3 py-8 mb-6 border-b border-border/40">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-foreground">
             FashionAI
           </h2>
-          <p className="text-xs text-muted-foreground mt-2">Análise de Tendências</p>
         </div>
 
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
+            <SidebarMenu className="space-y-1">
               {navigationItems.map((item) => {
                 const active = isActive(item.url);
                 return (
@@ -71,43 +70,22 @@ export function AppSidebar() {
                       <NavLink 
                         to={item.url} 
                         end={item.url === "/"}
-                        className="relative group w-full"
+                        className="w-full"
                       >
                         <div className={`
-                          flex items-center gap-4 w-full px-4 py-4 rounded-xl transition-all duration-300
+                          flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-colors
                           ${active 
-                            ? 'bg-primary/10 border border-primary/20 shadow-lg shadow-primary/10' 
-                            : 'hover:bg-muted/60 border border-transparent'
+                            ? 'bg-muted text-foreground' 
+                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                           }
                         `}>
-                          <div className={`
-                            flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300
-                            ${active 
-                              ? `bg-gradient-to-br ${item.gradient} shadow-lg shadow-${item.gradient.split(' ')[1]}/30` 
-                              : 'bg-muted group-hover:bg-muted/80'
-                            }
-                          `}>
-                            <item.icon 
-                              className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
-                                active 
-                                  ? 'text-white drop-shadow-sm' 
-                                  : 'text-muted-foreground group-hover:text-foreground'
-                              }`}
-                              strokeWidth={2.5}
-                            />
-                          </div>
-                          <span className={`text-[15px] font-semibold transition-all duration-300 ${
-                            active 
-                              ? 'text-foreground' 
-                              : 'text-muted-foreground group-hover:text-foreground'
-                          }`}>
+                          <item.icon 
+                            className="h-5 w-5 flex-shrink-0"
+                            strokeWidth={1.5}
+                          />
+                          <span className="text-sm font-medium">
                             {item.title}
                           </span>
-                          
-                          {/* Active indicator */}
-                          {active && (
-                            <div className="ml-auto w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
-                          )}
                         </div>
                       </NavLink>
                     </SidebarMenuButton>
