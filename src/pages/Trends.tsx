@@ -1,17 +1,13 @@
 import { useState } from "react";
-import { TrendingUp, Sparkles, Palette, Shirt, Upload as UploadIcon, X, Ruler, ChevronRight, ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Sparkles, Palette, Shirt, Upload as UploadIcon, X, Ruler, ChevronRight, ChevronLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
 import { motion, AnimatePresence } from "framer-motion";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,27 +26,6 @@ const STEPS = [
   { id: 3, title: "Parâmetros IA", description: "Configure a análise" },
 ];
 
-const demandData = [
-  { month: "Jan", demand: 400 },
-  { month: "Fev", demand: 300 },
-  { month: "Mar", demand: 600 },
-  { month: "Abr", demand: 800 },
-  { month: "Mai", demand: 700 },
-  { month: "Jun", demand: 900 },
-];
-
-const trendingColorsDefault = [
-  { name: "Terracota", hex: "#E07856", confidence: 94 },
-  { name: "Verde Sage", hex: "#A4B494", confidence: 89 },
-  { name: "Azul Petróleo", hex: "#2C5F72", confidence: 87 },
-];
-
-const trendingFabricsDefault = [
-  { name: "Linho Orgânico", trend: "+45%", icon: Shirt },
-  { name: "Algodão Reciclado", trend: "+38%", icon: Shirt },
-  { name: "Viscose Sustentável", trend: "+32%", icon: Shirt },
-];
-
 interface Product {
   id: string;
   file: File;
@@ -63,8 +38,8 @@ interface Product {
 
 export default function Trends() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Form data
@@ -76,12 +51,6 @@ export default function Trends() {
   const [focusModels, setFocusModels] = useState(true);
   const [analysisDepth, setAnalysisDepth] = useState("standard");
   const [dragActive, setDragActive] = useState(false);
-
-  // Results data (will be updated by AI)
-  const [trendingColors, setTrendingColors] = useState(trendingColorsDefault);
-  const [trendingFabrics, setTrendingFabrics] = useState(trendingFabricsDefault);
-
-  const progress = (currentStep / STEPS.length) * 100;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -206,23 +175,6 @@ export default function Trends() {
       const analysisId = trendData.data.analysis_id;
       console.log("Analysis ID:", analysisId);
 
-      // Update trending data with real AI results
-      if (trendData.data.trending_colors) {
-        setTrendingColors(trendData.data.trending_colors.map((c: any) => ({
-          name: c.name,
-          hex: c.hex,
-          confidence: c.confidence,
-        })));
-      }
-
-      if (trendData.data.trending_fabrics) {
-        setTrendingFabrics(trendData.data.trending_fabrics.map((f: any) => ({
-          name: f.name,
-          trend: f.trend,
-          icon: Shirt,
-        })));
-      }
-
       // Step 2: Analyze product images if any
       if (products.length > 0) {
         toast({
@@ -298,11 +250,14 @@ export default function Trends() {
       toast({
         title: "Análise concluída!",
         description: products.length > 0 
-          ? `Tendências identificadas e ${products.length} produto(s) analisado(s) com sucesso pela IA.`
-          : "Tendências identificadas com sucesso pela IA.",
+          ? `Redirecionando para resultados...`
+          : "Tendências identificadas. Redirecionando...",
       });
 
-      setShowResults(true);
+      // Redirecionar para página de resultados
+      setTimeout(() => {
+        navigate('/results');
+      }, 1000);
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
@@ -315,46 +270,21 @@ export default function Trends() {
     }
   };
 
-  const handleNewAnalysis = () => {
-    setShowResults(false);
-    setCurrentStep(1);
-    setCollectionName("");
-    setCollectionType("");
-    setProducts([]);
-    setFocusColors(true);
-    setFocusFabrics(true);
-    setFocusModels(true);
-    setAnalysisDepth("standard");
-  };
-
   return (
     <DashboardLayout>
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header - Minimalista */}
-        {!showResults && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
-          >
-            <h1 className="text-3xl font-semibold mb-2">Nova Análise</h1>
-            <p className="text-sm text-muted-foreground">Configure sua análise de tendências</p>
-          </motion.div>
-        )}
-        
-        {showResults && (
-          <div className="flex items-center justify-between mb-8">
-            <h1 className="text-2xl font-semibold">Resultados</h1>
-            <Button onClick={handleNewAnalysis} variant="ghost" size="sm">
-              <Sparkles className="mr-2 h-4 w-4" />
-              Nova
-            </Button>
-          </div>
-        )}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-3xl font-semibold mb-2">Nova Análise</h1>
+          <p className="text-sm text-muted-foreground">Configure sua análise de tendências</p>
+        </motion.div>
 
-        {!showResults ? (
-          /* Wizard Form - Minimalista */
-          <div className="space-y-8">
+        {/* Wizard Form - Minimalista */}
+        <div className="space-y-8">
             {/* Stepper Minimalista */}
             <div className="flex items-center justify-center gap-3">
               {STEPS.map((step, index) => (
@@ -600,102 +530,7 @@ export default function Trends() {
               )}
             </div>
           </div>
-        ) : (
-          /* Results Section */
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="space-y-6"
-          >
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display">Cores em Alta</CardTitle>
-                  <CardDescription>Tendências cromáticas mais buscadas</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {trendingColors.map((color, index) => (
-                    <div key={color.name} className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg shadow-sm" style={{ backgroundColor: color.hex }} />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">{color.name}</span>
-                          <Badge variant="secondary">{color.confidence}% confiança</Badge>
-                        </div>
-                        <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-                          <motion.div
-                            className="h-full bg-primary"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${color.confidence}%` }}
-                            transition={{ duration: 0.8, delay: 0.2 + index * 0.1 }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-display">Tecidos em Destaque</CardTitle>
-                  <CardDescription>Materiais mais valorizados</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {trendingFabrics.map((fabric, index) => (
-                    <motion.div
-                      key={fabric.name}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <fabric.icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <span className="font-medium">{fabric.name}</span>
-                      </div>
-                      <Badge className="bg-primary/10 text-primary hover:bg-primary/20">{fabric.trend}</Badge>
-                    </motion.div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Projeção de Demanda</CardTitle>
-                <CardDescription>Próximos 6 meses baseado em tendências</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={demandData}>
-                    <defs>
-                      <linearGradient id="colorDemand" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                    />
-                    <Area type="monotone" dataKey="demand" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#colorDemand)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-      </div>
-    </DashboardLayout>
-  );
+        </div>
+      </DashboardLayout>
+    );
 }
