@@ -250,13 +250,28 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
     try {
       const cleanedResponse = aiResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       analysisData = JSON.parse(cleanedResponse);
+      console.log('Parsed analysis data keys:', Object.keys(analysisData));
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
+      console.error('AI Response:', aiResponse);
       throw new Error('Failed to parse AI response');
     }
 
-    // Calculate recommended quantity based on demand_score
+    // Extract and validate required fields
     const demandScore = analysisData.demand_projection || 0;
+    const estimatedPrice = analysisData.estimated_market_price || 0;
+    const productionCost = analysisData.estimated_production_cost || 0;
+    
+    console.log('Extracted values:', {
+      demandScore,
+      estimatedPrice,
+      productionCost,
+      detected_color: analysisData.detected_color,
+      detected_fabric: analysisData.detected_fabric,
+      risk_level: analysisData.risk_level
+    });
+
+    // Calculate recommended quantity based on demand_score
     let recommendedQuantity = 0;
     
     if (demandScore >= 80) {
@@ -286,46 +301,58 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
     }
     
     const targetAudienceSize = Math.ceil(recommendedQuantity / conversionRate);
-    
-    // Extract estimated price and production cost from AI response
-    const estimatedPrice = analysisData.estimated_market_price || 0;
-    const productionCost = analysisData.estimated_production_cost || 0;
     const projectedRevenue = estimatedPrice * recommendedQuantity;
     const totalProductionCost = productionCost * recommendedQuantity;
     const profitMargin = estimatedPrice > 0 ? ((estimatedPrice - productionCost) / estimatedPrice * 100) : 0;
+
+    // Build score justification from the comparison data
+    const scoreJustification = analysisData.demand_calculation || 
+      `Score baseado em: Cor (${analysisData.comparison?.color_match || 0}), Tecido (${analysisData.comparison?.fabric_match || 0}), Modelagem (${analysisData.comparison?.style_match || 0})`;
 
     console.log(`Calculated recommended quantity: ${recommendedQuantity} for demand score: ${demandScore}`);
     console.log(`Target audience size: ${targetAudienceSize} (conversion rate: ${conversionRate * 100}%)`);
     console.log(`Estimated price: R$ ${estimatedPrice.toFixed(2)}, Production cost: R$ ${productionCost.toFixed(2)}`);
     console.log(`Projected revenue: R$ ${projectedRevenue.toFixed(2)}, Profit margin: ${profitMargin.toFixed(1)}%`);
 
+    // Prepare product data for insertion
+    const productInsertData = {
+      analysis_id: analysisId,
+      image_url: imageBase64,
+      sku: sku || null,
+      category: category || null,
+      color: analysisData.detected_color || null,
+      fabric: analysisData.detected_fabric || null,
+      demand_score: demandScore,
+      risk_level: analysisData.risk_level || 'medium',
+      insights: analysisData.insights || [],
+      analysis_description: analysisData.analysis_description || null,
+      sources: analysisData.sources || [],
+      score_justification: scoreJustification,
+      recommended_quantity: recommendedQuantity,
+      target_audience_size: targetAudienceSize,
+      estimated_price: estimatedPrice,
+      projected_revenue: projectedRevenue,
+      estimated_production_cost: productionCost
+    };
+
+    console.log('Attempting to insert product with data:', {
+      ...productInsertData,
+      image_url: '[base64 data]',
+      insights: `${productInsertData.insights.length} insights`,
+      sources: `${productInsertData.sources.length} sources`
+    });
+
     // Save product analysis to database
     const { data: productData, error: productError } = await supabase
       .from('analysis_products')
-      .insert({
-        analysis_id: analysisId,
-        image_url: imageBase64, // Store full base64 image
-        sku: sku || null,
-        category: category || null,
-        color: analysisData.detected_color,
-        fabric: analysisData.detected_fabric,
-        demand_score: analysisData.demand_projection,
-        risk_level: analysisData.risk_level,
-        insights: analysisData.insights || [],
-        analysis_description: analysisData.analysis_description || null,
-        sources: analysisData.sources || [],
-        recommended_quantity: recommendedQuantity,
-        target_audience_size: targetAudienceSize,
-        estimated_price: estimatedPrice,
-        projected_revenue: projectedRevenue,
-        estimated_production_cost: productionCost
-      })
+      .insert(productInsertData)
       .select()
       .single();
 
     if (productError) {
       console.error('Error saving product:', productError);
-      throw new Error('Failed to save product analysis');
+      console.error('Product error details:', JSON.stringify(productError, null, 2));
+      throw new Error(`Failed to save product analysis: ${productError.message}`);
     }
 
     console.log('Product analysis saved:', productData.id);
