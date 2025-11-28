@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe } from "lucide-react";
+import { ArrowLeft, Eye, Target, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -530,67 +530,6 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* Financial Metrics */}
-            {product.recommended_quantity && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="bg-muted/30 rounded-xl p-5 border border-border/50">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Package className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="text-3xl font-bold font-display">
-                      {product.recommended_quantity}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Unidades
-                    </p>
-                  </div>
-
-                  {product.estimated_price && (
-                    <div className="bg-muted/30 rounded-xl p-5 border border-border/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <DollarSign className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="text-3xl font-bold font-display">
-                        {product.estimated_price.toFixed(2)}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Preço de venda
-                      </p>
-                    </div>
-                  )}
-
-                  {product.estimated_production_cost && (
-                    <div className="bg-muted/30 rounded-xl p-5 border border-border/50">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Factory className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="text-3xl font-bold font-display">
-                        {product.estimated_production_cost.toFixed(2)}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Custo unitário
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Summary Financial Cards */}
-                {product.estimated_price && product.estimated_production_cost && (
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border border-primary/20">
-                      <div className="flex items-center gap-2 mb-3">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium text-muted-foreground">Margem</span>
-                      </div>
-                      <div className="text-5xl font-bold font-display text-primary">
-                        {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Sources Section - Enhanced */}
             {product.sources && product.sources.length > 0 && (
