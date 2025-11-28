@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, Target, Info, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, Link2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ExternalLink, Eye, Target, Info, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, Link2, Package, Users, DollarSign, Factory, PiggyBank, Wallet } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -238,114 +238,123 @@ export default function Results() {
                                   />
                                 </div>
                                 
-                                {/* Recommended Quantity */}
+                                {/* Financial Metrics Grid */}
                                 {product.recommended_quantity && (
-                                  <div className="mt-3 space-y-2">
-                                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm font-medium text-primary">
-                                          Quantidade Recomendada
-                                        </span>
-                                        <span className="text-lg font-bold text-primary">
-                                          {product.recommended_quantity} unidades
-                                        </span>
-                                      </div>
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        Baseado no score de demanda
-                                      </p>
-                                    </div>
-                                    
-                                    {/* Target Audience Size */}
-                                    {product.target_audience_size && (
-                                      <div className="p-3 bg-accent/5 border border-accent/20 rounded-lg">
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-sm font-medium text-accent-foreground">
-                                            Público-Alvo Necessário
-                                          </span>
-                                          <span className="text-lg font-bold text-accent-foreground">
-                                            {product.target_audience_size.toLocaleString('pt-BR')} pessoas
-                                          </span>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground mt-1">
-                                          Para garantir a venda de {product.recommended_quantity} unidades
-                                        </p>
-                                      </div>
-                                    )}
-                                    
-                                    {/* Price and Revenue */}
-                                    {product.estimated_price && (
-                                      <>
-                                        <div className="grid grid-cols-2 gap-2">
-                                          <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
-                                            <div className="space-y-1">
-                                              <span className="text-xs font-medium text-muted-foreground">
-                                                Preço de Venda
-                                              </span>
-                                              <p className="text-lg font-bold">
-                                                R$ {product.estimated_price.toFixed(2)}
-                                              </p>
-                                            </div>
+                                  <div className="mt-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                      {/* Quantidade Recomendada */}
+                                      <Card className="border-border/50">
+                                        <CardContent className="p-4">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <Package className="h-4 w-4 text-primary" />
                                           </div>
-                                          
-                                          {product.estimated_production_cost && (
-                                            <div className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
-                                              <div className="space-y-1">
-                                                <span className="text-xs font-medium text-muted-foreground">
-                                                  Custo de Produção
-                                                </span>
-                                                <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
-                                                  R$ {product.estimated_production_cost.toFixed(2)}
-                                                </p>
-                                              </div>
+                                          <div className="text-2xl font-bold font-display">
+                                            {product.recommended_quantity}
+                                          </div>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            Unidades
+                                          </p>
+                                        </CardContent>
+                                      </Card>
+
+                                      {/* Público-Alvo */}
+                                      {product.target_audience_size && (
+                                        <Card className="border-border/50">
+                                          <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                              <Users className="h-4 w-4 text-primary" />
                                             </div>
-                                          )}
-                                        </div>
-                                        
-                                        {product.estimated_production_cost && (
-                                          <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
-                                            <div className="flex items-center justify-between">
-                                              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                                                Margem de Lucro
-                                              </span>
-                                              <span className="text-lg font-bold text-blue-700 dark:text-blue-400">
-                                                {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
-                                              </span>
+                                            <div className="text-2xl font-bold font-display">
+                                              {(product.target_audience_size / 1000).toFixed(1)}k
                                             </div>
                                             <p className="text-xs text-muted-foreground mt-1">
-                                              R$ {(product.estimated_price - product.estimated_production_cost).toFixed(2)} de lucro por unidade
+                                              Público-alvo
                                             </p>
-                                          </div>
-                                        )}
-                                        
-                                        {product.projected_revenue && (
-                                          <div className="p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
-                                            <div className="space-y-2">
-                                              <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                                  Receita Projetada
-                                                </span>
-                                                <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                                                  R$ {product.projected_revenue.toFixed(2)}
-                                                </span>
-                                              </div>
-                                              {product.estimated_production_cost && (
-                                                <>
-                                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                                    <span>Custo Total</span>
-                                                    <span>R$ {(product.estimated_production_cost * product.recommended_quantity).toFixed(2)}</span>
-                                                  </div>
-                                                  <div className="flex items-center justify-between text-sm font-semibold pt-1 border-t border-green-500/20">
-                                                    <span className="text-green-700 dark:text-green-400">Lucro Líquido</span>
-                                                    <span className="text-green-700 dark:text-green-400">
-                                                      R$ {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
-                                                    </span>
-                                                  </div>
-                                                </>
-                                              )}
+                                          </CardContent>
+                                        </Card>
+                                      )}
+
+                                      {/* Preço de Venda */}
+                                      {product.estimated_price && (
+                                        <Card className="border-border/50">
+                                          <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                              <DollarSign className="h-4 w-4 text-primary" />
                                             </div>
-                                          </div>
+                                            <div className="text-2xl font-bold font-display">
+                                              R$ {product.estimated_price.toFixed(2)}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                              Preço de venda
+                                            </p>
+                                          </CardContent>
+                                        </Card>
+                                      )}
+
+                                      {/* Custo de Produção */}
+                                      {product.estimated_production_cost && (
+                                        <Card className="border-border/50">
+                                          <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                              <Factory className="h-4 w-4 text-primary" />
+                                            </div>
+                                            <div className="text-2xl font-bold font-display">
+                                              R$ {product.estimated_production_cost.toFixed(2)}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                              Custo unitário
+                                            </p>
+                                          </CardContent>
+                                        </Card>
+                                      )}
+                                    </div>
+
+                                    {/* Summary Cards */}
+                                    {product.estimated_price && product.estimated_production_cost && (
+                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+                                        {/* Margem de Lucro */}
+                                        <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
+                                          <CardContent className="p-4">
+                                            <div className="flex items-center justify-between mb-2">
+                                              <TrendingUp className="h-4 w-4 text-primary" />
+                                              <span className="text-xs text-muted-foreground">Margem</span>
+                                            </div>
+                                            <div className="text-2xl font-bold font-display text-primary">
+                                              {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
+                                            </div>
+                                          </CardContent>
+                                        </Card>
+
+                                        {/* Receita Projetada */}
+                                        {product.projected_revenue && (
+                                          <Card className="border-border/50 bg-gradient-to-br from-green-500/5 to-transparent">
+                                            <CardContent className="p-4">
+                                              <div className="flex items-center justify-between mb-2">
+                                                <PiggyBank className="h-4 w-4 text-green-600 dark:text-green-500" />
+                                                <span className="text-xs text-muted-foreground">Receita</span>
+                                              </div>
+                                              <div className="text-2xl font-bold font-display text-green-600 dark:text-green-500">
+                                                R$ {product.projected_revenue.toFixed(2)}
+                                              </div>
+                                            </CardContent>
+                                          </Card>
                                         )}
-                                      </>
+
+                                        {/* Lucro Líquido */}
+                                        {product.projected_revenue && (
+                                          <Card className="border-border/50 bg-gradient-to-br from-emerald-500/5 to-transparent">
+                                            <CardContent className="p-4">
+                                              <div className="flex items-center justify-between mb-2">
+                                                <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
+                                                <span className="text-xs text-muted-foreground">Lucro</span>
+                                              </div>
+                                              <div className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-500">
+                                                R$ {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
+                                              </div>
+                                            </CardContent>
+                                          </Card>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
                                 )}
