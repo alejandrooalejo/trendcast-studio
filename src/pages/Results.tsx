@@ -237,6 +237,23 @@ export default function Results() {
                                     transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
                                   />
                                 </div>
+                                
+                                {/* Recommended Quantity */}
+                                {product.recommended_quantity && (
+                                  <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-sm font-medium text-primary">
+                                        Quantidade Recomendada
+                                      </span>
+                                      <span className="text-lg font-bold text-primary">
+                                        {product.recommended_quantity} unidades
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Baseado no score de demanda
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             )}
 
