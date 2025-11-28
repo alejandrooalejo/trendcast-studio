@@ -50,47 +50,63 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border/50">
-      <SidebarContent className="gap-3 py-6 px-3">
+    <Sidebar className="border-r border-border/40 bg-background/95 backdrop-blur">
+      <SidebarContent className="gap-0 p-4">
+        {/* Header da Sidebar */}
+        <div className="px-3 py-6 mb-4 border-b border-border/40">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            FashionAI
+          </h2>
+          <p className="text-xs text-muted-foreground mt-1">Análise de Tendências</p>
+        </div>
+
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-2">
+            <SidebarMenu className="gap-1.5">
               {navigationItems.map((item) => {
                 const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
+                    <SidebarMenuButton asChild className="p-0">
                       <NavLink 
                         to={item.url} 
                         end={item.url === "/"}
                         className="relative group w-full"
                       >
                         <div className={`
-                          flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300
+                          flex items-center gap-3.5 w-full px-4 py-3.5 rounded-lg transition-all duration-300
                           ${active 
-                            ? `bg-gradient-to-br ${item.bgGradient} shadow-lg` 
-                            : 'bg-muted/50 hover:bg-muted hover:shadow-md'
+                            ? 'bg-primary/10 border border-primary/20 shadow-lg shadow-primary/10' 
+                            : 'hover:bg-muted/60 border border-transparent'
                           }
                         `}>
-                          <item.icon 
-                            className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
-                              active 
-                                ? 'text-primary' 
-                                : 'text-muted-foreground group-hover:text-foreground'
-                            }`}
-                            strokeWidth={active ? 2.5 : 2}
-                          />
+                          <div className={`
+                            flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
+                            ${active 
+                              ? `bg-gradient-to-br ${item.gradient} shadow-md` 
+                              : 'bg-muted/40 group-hover:bg-muted'
+                            }
+                          `}>
+                            <item.icon 
+                              className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
+                                active 
+                                  ? 'text-white' 
+                                  : 'text-muted-foreground group-hover:text-foreground'
+                              }`}
+                              strokeWidth={2}
+                            />
+                          </div>
                           <span className={`text-sm font-medium transition-all duration-300 ${
                             active 
-                              ? 'text-primary' 
+                              ? 'text-foreground' 
                               : 'text-muted-foreground group-hover:text-foreground'
                           }`}>
                             {item.title}
                           </span>
                           
-                          {/* Glow effect for active */}
+                          {/* Active indicator */}
                           {active && (
-                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${item.gradient} opacity-15 blur-xl -z-10`} />
+                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
                           )}
                         </div>
                       </NavLink>
