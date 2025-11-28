@@ -4,10 +4,12 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Target, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe } from "lucide-react";
+import { ArrowLeft, Eye, Target, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe, Clock, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format, formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function ProductDetails() {
   const navigate = useNavigate();
@@ -164,42 +166,65 @@ export default function ProductDetails() {
             <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center">
               <AlertCircle className="h-12 w-12 text-muted-foreground" />
             </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-foreground">Produto não encontrado</h2>
-              <p className="text-muted-foreground">
-                O produto que você está procurando não existe ou foi removido.
-              </p>
-            </div>
-            <Button onClick={() => navigate("/results")} size="lg" className="mt-4">
-              <ArrowLeft className="mr-2 h-5 w-5" />
-              Voltar para Resultados
-            </Button>
-          </motion.div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/results")}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-display font-semibold text-foreground">
-              {product.sku || "Detalhes do Produto"}
-            </h1>
-            <p className="text-muted-foreground mt-1">Análise completa do produto</p>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold text-foreground">Produto não encontrado</h2>
+                <p className="text-muted-foreground">
+                  O produto que você está procurando não existe ou foi removido.
+                </p>
+              </div>
+              <Button onClick={() => navigate("/results")} size="lg" className="mt-4">
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Voltar para Resultados
+              </Button>
+            </motion.div>
           </div>
-        </div>
+        </DashboardLayout>
+      );
+    }
+
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/results")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              <div>
+                <h1 className="text-3xl font-display font-semibold text-foreground">
+                  {product.sku || "Detalhes do Produto"}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-muted-foreground">Análise completa do produto</p>
+                  {product.created_at && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
+                        {formatDistanceToNow(new Date(product.created_at), { 
+                          addSuffix: true,
+                          locale: ptBR 
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {product.created_at && (
+              <Badge variant="outline" className="text-sm">
+                <Calendar className="h-3.5 w-3.5 mr-1" />
+                {format(new Date(product.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </Badge>
+            )}
+          </div>
 
         {/* Product Card */}
         <motion.div

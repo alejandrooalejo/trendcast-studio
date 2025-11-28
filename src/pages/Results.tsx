@@ -4,11 +4,13 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, Sparkles, ImageOff } from "lucide-react";
+import { ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, Sparkles, ImageOff, Clock, Calendar, TrendingUp as TrendingUpIcon } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { formatDistanceToNow, format, differenceInDays } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export default function Results() {
   const navigate = useNavigate();
@@ -98,6 +100,33 @@ export default function Results() {
     return "Risco Desconhecido";
   };
 
+  const getTimeAgoLabel = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      const daysAgo = differenceInDays(new Date(), date);
+      
+      if (daysAgo === 0) return "Hoje";
+      if (daysAgo === 1) return "Ontem";
+      if (daysAgo < 7) return `Há ${daysAgo} dias`;
+      if (daysAgo < 30) return `Há ${Math.floor(daysAgo / 7)} semanas`;
+      if (daysAgo < 365) return `Há ${Math.floor(daysAgo / 30)} meses`;
+      return `Há ${Math.floor(daysAgo / 365)} anos`;
+    } catch {
+      return "Data inválida";
+    }
+  };
+
+  const getTimeFreshnessColor = (dateString: string) => {
+    try {
+      const daysAgo = differenceInDays(new Date(), new Date(dateString));
+      if (daysAgo < 7) return "text-emerald-600 bg-emerald-50 border-emerald-200";
+      if (daysAgo < 30) return "text-amber-600 bg-amber-50 border-amber-200";
+      return "text-slate-600 bg-slate-50 border-slate-200";
+    } catch {
+      return "text-slate-600 bg-slate-50 border-slate-200";
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -154,27 +183,109 @@ export default function Results() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-display font-semibold text-foreground">Resultados das Análises</h1>
-            <p className="text-muted-foreground mt-1">{analyses.length} análise(s) encontrada(s)</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className="text-muted-foreground">{analyses.length} análise(s) encontrada(s)</p>
+              {analyses.length > 0 && (
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <TrendingUpIcon className="h-3.5 w-3.5" />
+                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 7).length} recentes
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+          
+          <Button onClick={() => navigate("/trends")} size="lg">
+            <Sparkles className="mr-2 h-5 w-5" />
+            Nova Análise
+          </Button>
         </div>
 
         <div className="space-y-8">
+          {/* Timeline Summary */}
+          {analyses.length > 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20"
+            >
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                  <TrendingUpIcon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-foreground mb-1">Linha do Tempo</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Suas análises ao longo do tempo
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Clock className="h-4 w-4 text-emerald-600" />
+                    <span className="text-xs text-muted-foreground">Últimos 7 dias</span>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 7).length}
+                  </p>
+                </div>
+                
+                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="h-4 w-4 text-amber-600" />
+                    <span className="text-xs text-muted-foreground">Últimos 30 dias</span>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 30).length}
+                  </p>
+                </div>
+                
+                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Target className="h-4 w-4 text-primary" />
+                    <span className="text-xs text-muted-foreground">Total</span>
+                  </div>
+                  <p className="text-2xl font-bold text-foreground">{analyses.length}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {analyses.map((analysis) => (
             <Card key={analysis.id} className="border-2">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex-1 min-w-0">
                     <CardTitle className="font-display">{analysis.collection_name}</CardTitle>
-                    <CardDescription>
-                      {analysis.collection_type} • {analysis.products.length} produto(s) analisado(s)
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      <span>{analysis.collection_type}</span>
+                      <span>•</span>
+                      <span>{analysis.products.length} produto(s) analisado(s)</span>
                     </CardDescription>
                   </div>
-                  <Badge variant="outline" className="text-sm">
-                    {new Date(analysis.created_at).toLocaleDateString('pt-BR')}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className={`text-xs border ${getTimeFreshnessColor(analysis.created_at)}`}>
+                      <Clock className="h-3 w-3 mr-1" />
+                      {getTimeAgoLabel(analysis.created_at)}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      <Calendar className="h-3 w-3 mr-1" />
+                      {format(new Date(analysis.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                    </Badge>
+                    {differenceInDays(new Date(), new Date(analysis.created_at)) < 2 && (
+                      <Badge className="text-xs bg-emerald-500 hover:bg-emerald-600">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Novo
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>

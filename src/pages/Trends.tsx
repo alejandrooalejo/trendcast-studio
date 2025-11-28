@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
+import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft, CheckCircle2, AlertTriangle, AlertCircle, Clock, TrendingUpIcon } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
