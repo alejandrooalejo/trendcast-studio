@@ -187,14 +187,45 @@ Forneça uma análise em JSON com esta estrutura OBRIGATÓRIA:
     {"source": "Nome da Fonte", "count": número_exato_da_metodologia}
   ],
   "risk_level": "low/medium/high",
+  "confidence_levels": {
+    "color_detection": 0-100,
+    "fabric_detection": 0-100,
+    "style_detection": 0-100,
+    "overall_confidence": 0-100
+  },
   "comparison": {
     "color_match": 90,
     "color_reasoning": "OBRIGATÓRIO: Explique o score baseado nos critérios da metodologia. Ex: 'Cor azul marinho idêntica à tendência #1 (Azul Marinho #1A3B5C, 95% confiança) = 100 pontos'",
+    "color_trend_reference": "Nome exato da tendência de cor + dados (ex: 'Azul Marinho #1A3B5C - 950 aparições')",
     "fabric_match": 75,
     "fabric_reasoning": "OBRIGATÓRIO: Explique o score. Ex: 'Malha de algodão similar à tendência principal (Malha Sustentável, 85% das aparições) = 85 pontos'",
+    "fabric_trend_reference": "Nome exato da tendência de tecido + dados",
     "style_match": 80,
     "style_reasoning": "OBRIGATÓRIO: Explique o score. Ex: 'Corte oversized idêntico à tendência #2 (Oversized, alta popularidade) = 95 pontos'",
+    "style_trend_reference": "Nome exato da tendência de modelagem + dados",
     "overall_trend_alignment": 82
+  },
+  "scoring_breakdown": {
+    "color_component": {
+      "weight": 35,
+      "raw_score": 90,
+      "weighted_score": 31.5,
+      "explanation": "Cor detectada corresponde a 90% da tendência principal, resultando em 31.5 pontos (35% do total)"
+    },
+    "fabric_component": {
+      "weight": 30,
+      "raw_score": 75,
+      "weighted_score": 22.5,
+      "explanation": "Tecido similar às tendências, contribuindo com 22.5 pontos (30% do total)"
+    },
+    "style_component": {
+      "weight": 35,
+      "raw_score": 80,
+      "weighted_score": 28.0,
+      "explanation": "Modelagem alinhada às tendências, adicionando 28.0 pontos (35% do total)"
+    },
+    "total_score": 82.0,
+    "score_interpretation": "Score de 82/100 indica ALTA demanda. Produto bem alinhado com tendências atuais."
   },
   "demand_projection": 0,
   "demand_calculation": "OBRIGATÓRIO: Mostre o cálculo EXATO: (90 × 0.35) + (75 × 0.30) + (80 × 0.35) = 82.0",
@@ -204,16 +235,23 @@ Forneça uma análise em JSON com esta estrutura OBRIGATÓRIA:
       "title": "Título claro",
       "description": "Insight ESPECÍFICO com dados: qual tendência, quantas aparições, qual o impacto",
       "impact": "high/medium/low",
-      "supporting_data": "Referência à tendência específica usada"
+      "supporting_data": "Referência à tendência específica usada",
+      "impact_on_score": "Quantificar o impacto no score final (ex: '+15 pontos no color_match')"
     }
   ],
   "improvements": [
     {
       "aspect": "cor/tecido/modelagem",
       "current": "O que está no produto",
+      "current_score": 75,
       "suggested": "Tendência específica a seguir (nome + dados)",
+      "suggested_score": 95,
       "reason": "Por que esta mudança aumentaria o score (mostre o cálculo)",
-      "potential_score_increase": "Ex: de 75 para 95 pontos em fabric_match"
+      "score_increase": 20,
+      "weighted_impact": 6.0,
+      "new_total_score": 88.0,
+      "priority": "high/medium/low",
+      "implementation_difficulty": "easy/medium/hard"
     }
   ]
 }
@@ -223,12 +261,16 @@ REGRAS OBRIGATÓRIAS:
 2. O demand_projection DEVE ser calculado com a fórmula fornecida
 3. Inclua "reasoning" para CADA score de comparação
 4. Inclua "demand_calculation" mostrando a matemática exata
-5. Cada insight DEVE referenciar dados específicos das tendências
-6. Cada improvement DEVE mostrar o impacto numérico no score
+5. Cada insight DEVE referenciar dados específicos das tendências E incluir impact_on_score
+6. Cada improvement DEVE mostrar o impacto numérico no score COM os campos score_increase e weighted_impact
 7. Use os valores EXATOS de "FONTES DE DADOS" no campo sources
 8. risk_level baseado em: demand_projection > 75 = "low", 50-75 = "medium", < 50 = "high"
 9. estimated_market_price: Faça uma pesquisa mental de mercado em grandes e-commerces brasileiros (Renner, C&A, Riachuelo, Zara, H&M, Shein) para produtos similares em categoria${category ? ` "${category}"` : ''}, tecido e modelagem. Calcule a MÉDIA de preços encontrados. Considere qualidade e alinhamento com tendências para ajustar +/- 15% da média.
 10. estimated_production_cost: Análise REALISTA baseada em materiais e complexidade visíveis (considere mercado brasileiro de confecção)
+11. PREENCHA TODOS OS CAMPOS de confidence_levels (0-100) baseado na clareza visual da detecção
+12. PREENCHA TODOS OS CAMPOS de scoring_breakdown com explicações detalhadas de cada componente
+13. Para cada improvement, calcule current_score, suggested_score, score_increase, weighted_impact e new_total_score
+14. Adicione priority e implementation_difficulty em cada improvement para ajudar na priorização
 
 IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem SEMPRE gerará os mesmos scores!`;
 
