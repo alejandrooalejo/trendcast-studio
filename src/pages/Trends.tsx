@@ -350,7 +350,7 @@ export default function Trends() {
                   <div className="space-y-8">
                     <div className="space-y-3">
                       <Label htmlFor="collection-name" className="text-sm font-medium">
-                        Nome da coleção
+                        Nome da Peça
                       </Label>
                       <Input
                         id="collection-name"
