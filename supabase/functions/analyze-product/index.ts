@@ -48,15 +48,30 @@ serve(async (req) => {
     const systemPrompt = `Você é um especialista em análise de moda que avalia produtos comparando-os com tendências do mercado.
 Analise a imagem do produto e compare com as tendências fornecidas para gerar insights acionáveis.`;
 
+    // Calculate source data counts from trends
+    const sourceDataMap = new Map<string, number>();
+    
+    [...trendingColors, ...trendingFabrics, ...trendingModels].forEach(trend => {
+      if (trend.sources) {
+        trend.sources.forEach((source: string) => {
+          const count = sourceDataMap.get(source) || 0;
+          sourceDataMap.set(source, count + (trend.search_appearances || 0));
+        });
+      }
+    });
+
     const trendsSummary = `
 TENDÊNCIAS DE CORES:
-${trendingColors.map(c => `- ${c.name} (${c.hex_code}): ${c.reason} [Confiança: ${c.confidence_score}%]`).join('\n')}
+${trendingColors.map(c => `- ${c.name} (${c.hex_code}): ${c.reason} [Confiança: ${c.confidence_score}%, ${c.search_appearances || 0} aparições]`).join('\n')}
 
 TENDÊNCIAS DE TECIDOS:
-${trendingFabrics.map(f => `- ${f.name} (${f.trend_percentage}): ${f.reason}`).join('\n')}
+${trendingFabrics.map(f => `- ${f.name} (${f.trend_percentage}): ${f.reason} [${f.search_appearances || 0} aparições]`).join('\n')}
 
 TENDÊNCIAS DE MODELAGEM:
-${trendingModels.map(m => `- ${m.name} (${m.popularity}): ${m.description}`).join('\n')}
+${trendingModels.map(m => `- ${m.name} (${m.popularity}): ${m.description} [${m.search_appearances || 0} aparições]`).join('\n')}
+
+DADOS DE FONTES DISPONÍVEIS:
+${Array.from(sourceDataMap.entries()).map(([source, count]) => `- ${source}: ${count} dados analisados`).join('\n')}
 `;
 
     const userPrompt = `Analise este produto de moda na imagem e compare DETALHADAMENTE com as tendências fornecidas.
@@ -73,7 +88,11 @@ Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
   "detected_style": "Modelagem/corte identificado",
   "alignment_score": 85,
   "demand_projection": 72,
-  "sources": ["Google Trends", "Instagram Fashion", "WGSN", "Vogue", "Zara Trends"],
+  "sources": [
+    {"source": "Google Trends", "count": 1200},
+    {"source": "Instagram Fashion", "count": 850},
+    {"source": "WGSN", "count": 340}
+  ],
   "risk_level": "low/medium/high",
   "insights": [
     {
@@ -107,7 +126,7 @@ REGRAS CRÍTICAS:
    - Alinhamento de cor com cores em alta (peso: 35%)
    - Alinhamento de tecido com materiais trending (peso: 30%)
    - Alinhamento de estilo com modelagens populares (peso: 35%)
-4. sources: Liste as fontes REAIS das tendências fornecidas que você comparou (Google Trends, Instagram, TikTok, WGSN, Vogue, Zara, H&M, Shein, etc)
+4. sources: Array de objetos com {source: string, count: number} usando os dados REAIS fornecidos na seção "DADOS DE FONTES DISPONÍVEIS". Use as quantidades exatas informadas!
 5. risk_level: 
    - "low" se demand_projection > 75
    - "medium" se demand_projection 50-75

@@ -250,15 +250,26 @@ export default function Results() {
                                     <p className="text-sm font-semibold text-primary">Fontes de Dados</p>
                                   </div>
                                   <div className="flex flex-wrap gap-2 ml-6">
-                                    {product.sources.map((source: string, idx: number) => (
-                                      <Badge 
-                                        key={idx} 
-                                        variant="outline" 
-                                        className="bg-background border-primary/30"
-                                      >
-                                        {source}
-                                      </Badge>
-                                    ))}
+                                    {product.sources.map((sourceData: any, idx: number) => {
+                                      // Handle both old format (string) and new format (object)
+                                      const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
+                                      const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
+                                      
+                                      return (
+                                        <Badge 
+                                          key={idx} 
+                                          variant="outline" 
+                                          className="bg-background border-primary/30"
+                                        >
+                                          {sourceName}
+                                          {sourceCount && (
+                                            <span className="ml-1.5 text-primary font-semibold">
+                                              ({sourceCount.toLocaleString()})
+                                            </span>
+                                          )}
+                                        </Badge>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               </>
