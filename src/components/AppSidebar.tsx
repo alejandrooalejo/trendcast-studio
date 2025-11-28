@@ -27,7 +27,7 @@ const navigationItems = [
     bgGradient: "from-blue-500/10 to-teal-500/10"
   },
   { 
-    title: "Biblioteca de Produtos", 
+    title: "Biblioteca", 
     url: "/library", 
     icon: Library,
     gradient: "from-purple-400 via-violet-400 to-indigo-400",
@@ -81,22 +81,22 @@ export function AppSidebar() {
                           }
                         `}>
                           <div className={`
-                            flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-300
+                            flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300
                             ${active 
-                              ? `bg-gradient-to-br ${item.gradient} shadow-md` 
-                              : 'bg-muted/40 group-hover:bg-muted'
+                              ? `bg-gradient-to-br ${item.gradient} shadow-lg shadow-${item.gradient.split(' ')[1]}/30` 
+                              : 'bg-muted group-hover:bg-muted/80'
                             }
                           `}>
                             <item.icon 
                               className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
                                 active 
-                                  ? 'text-white' 
+                                  ? 'text-white drop-shadow-sm' 
                                   : 'text-muted-foreground group-hover:text-foreground'
                               }`}
-                              strokeWidth={2}
+                              strokeWidth={2.5}
                             />
                           </div>
-                          <span className={`text-sm font-medium transition-all duration-300 ${
+                          <span className={`text-sm font-semibold transition-all duration-300 ${
                             active 
                               ? 'text-foreground' 
                               : 'text-muted-foreground group-hover:text-foreground'
@@ -106,7 +106,7 @@ export function AppSidebar() {
                           
                           {/* Active indicator */}
                           {active && (
-                            <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            <div className="ml-auto w-2 h-2 rounded-full bg-primary animate-pulse shadow-lg shadow-primary/50" />
                           )}
                         </div>
                       </NavLink>
