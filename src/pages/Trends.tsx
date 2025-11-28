@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft } from "lucide-react";
+import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft, CheckCircle2, AlertTriangle, AlertCircle } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 const STEPS = [
   { id: 1, title: "Produtos", description: "Upload de produtos" },
   { id: 2, title: "Parâmetros IA", description: "Configure a análise" },
+  { id: 3, title: "Resultados", description: "Veja sua análise" },
 ];
 
 interface Product {
@@ -33,6 +36,10 @@ export default function Trends() {
   const [products, setProducts] = useState<Product[]>([]);
   const [analysisDepth, setAnalysisDepth] = useState("standard");
   const [dragActive, setDragActive] = useState(false);
+  
+  // Analysis results
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<any>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -79,6 +86,8 @@ export default function Trends() {
         return collectionName && products.length > 0;
       case 2:
         return true;
+      case 3:
+        return analysisResults !== null;
       default:
         return false;
     }
@@ -216,14 +225,41 @@ export default function Trends() {
       toast({
         title: "Análise concluída!",
         description: products.length > 0 
-          ? `Redirecionando para resultados...`
-          : "Tendências identificadas. Redirecionando...",
+          ? `${products.length} produto(s) analisado(s)`
+          : "Tendências identificadas.",
       });
 
-      // Redirecionar para página de resultados
-      setTimeout(() => {
-        navigate('/results');
-      }, 1000);
+      // Store analysis ID and fetch complete results
+      setAnalysisId(analysisId);
+      
+      // Fetch complete analysis data
+      const { data: completeAnalysis, error: fetchError } = await supabase
+        .from('analyses')
+        .select('*')
+        .eq('id', analysisId)
+        .single();
+        
+      if (fetchError) {
+        console.error("Error fetching analysis:", fetchError);
+      } else {
+        // Fetch products for this analysis
+        const { data: analysisProducts, error: productsError } = await supabase
+          .from('analysis_products')
+          .select('*')
+          .eq('analysis_id', analysisId);
+          
+        if (productsError) {
+          console.error("Error fetching products:", productsError);
+        }
+        
+        setAnalysisResults({
+          ...completeAnalysis,
+          products: analysisProducts || []
+        });
+      }
+
+      // Navigate to results step
+      setCurrentStep(3);
     } catch (error) {
       console.error("Analysis error:", error);
       toast({
@@ -435,28 +471,192 @@ export default function Trends() {
                     </div>
                   </div>
                 )}
+
+                {/* Step 3: Results */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    {loading ? (
+                      <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                        <p className="text-muted-foreground">Gerando análise...</p>
+                      </div>
+                    ) : analysisResults ? (
+                      <div className="space-y-6">
+                        <Card className="border-2">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <CardTitle className="font-display">{analysisResults.collection_name}</CardTitle>
+                                <CardDescription>
+                                  {analysisResults.collection_type} • {analysisResults.products?.length || 0} produto(s) analisado(s)
+                                </CardDescription>
+                              </div>
+                              <Badge variant="secondary" className="text-sm">
+                                {new Date(analysisResults.created_at).toLocaleDateString('pt-BR')}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            {analysisResults.products && analysisResults.products.length > 0 ? (
+                              <div className="grid gap-4">
+                                {analysisResults.products.map((product: any, index: number) => {
+                                  const getTrendIcon = (riskLevel: string) => {
+                                    const riskLower = riskLevel?.toLowerCase();
+                                    if (riskLower === "baixo" || riskLower === "low") {
+                                      return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+                                    }
+                                    if (riskLower === "alto" || riskLower === "high") {
+                                      return <AlertTriangle className="h-5 w-5 text-rose-400" />;
+                                    }
+                                    return <AlertCircle className="h-5 w-5 text-amber-500" />;
+                                  };
+
+                                  const getRiskBadge = (risk: string) => {
+                                    const riskLower = risk?.toLowerCase();
+                                    if (riskLower === "alto" || riskLower === "high") return "destructive";
+                                    if (riskLower === "baixo" || riskLower === "low") return "secondary";
+                                    return "default";
+                                  };
+
+                                  const getRiskLabel = (risk: string) => {
+                                    const riskLower = risk?.toLowerCase();
+                                    if (riskLower === "alto" || riskLower === "high") return "Alto Risco";
+                                    if (riskLower === "baixo" || riskLower === "low") return "Baixo Risco";
+                                    if (riskLower === "medio" || riskLower === "medium" || riskLower === "médio") return "Risco Moderado";
+                                    return "Risco Desconhecido";
+                                  };
+
+                                  return (
+                                    <motion.div
+                                      key={product.id}
+                                      initial={{ opacity: 0, y: 20 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      transition={{ duration: 0.4, delay: index * 0.1 }}
+                                      className="border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 bg-card cursor-pointer"
+                                      onClick={() => navigate(`/product-details?id=${product.id}`)}
+                                    >
+                                      <div className="flex gap-4 p-5">
+                                        {product.image_url && (
+                                          <div className="w-24 h-24 bg-background rounded-lg flex-shrink-0 overflow-hidden border border-border">
+                                            <img 
+                                              src={product.image_url} 
+                                              alt={product.sku || "Produto"} 
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                        )}
+
+                                        <div className="flex-1 space-y-3">
+                                          <div className="flex items-start justify-between">
+                                            <div>
+                                              <h3 className="text-lg font-semibold font-display">
+                                                {product.sku || `Produto ${index + 1}`}
+                                              </h3>
+                                              <p className="text-sm text-muted-foreground mt-1">
+                                                {product.category || "Sem categoria"}
+                                                {product.color && ` • ${product.color}`}
+                                              </p>
+                                            </div>
+                                            {product.risk_level && (
+                                              <Badge 
+                                                variant={getRiskBadge(product.risk_level)}
+                                                className="text-xs"
+                                              >
+                                                {getTrendIcon(product.risk_level)}
+                                                <span className="ml-1">{getRiskLabel(product.risk_level)}</span>
+                                              </Badge>
+                                            )}
+                                          </div>
+
+                                          {product.demand_score && (
+                                            <div className="space-y-2">
+                                              <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium">Score de Demanda</span>
+                                                <span className="text-lg font-bold text-primary">{product.demand_score}/100</span>
+                                              </div>
+                                              <div className="w-full bg-muted rounded-full h-2">
+                                                <div 
+                                                  className="bg-gradient-to-r from-primary/80 to-primary h-2 rounded-full transition-all duration-500"
+                                                  style={{ width: `${product.demand_score}%` }}
+                                                />
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          {product.analysis_description && (
+                                            <p className="text-sm text-muted-foreground line-clamp-2">
+                                              {product.analysis_description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground text-center py-8">
+                                Nenhum produto foi analisado ainda
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+
+                        <div className="flex justify-center gap-3">
+                          <Button 
+                            variant="outline" 
+                            size="lg"
+                            onClick={() => navigate('/results')}
+                          >
+                            Ver Todas Análises
+                          </Button>
+                          <Button 
+                            size="lg"
+                            onClick={() => {
+                              setCurrentStep(1);
+                              setAnalysisResults(null);
+                              setAnalysisId(null);
+                              setProducts([]);
+                              setCollectionName("");
+                            }}
+                            className="gap-2"
+                          >
+                            <Sparkles className="h-4 w-4" />
+                            Nova Análise
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-muted-foreground">Nenhum resultado disponível</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
           </motion.div>
 
           {/* Navigation */}
           <div className="flex justify-between items-center pt-8">
-            {currentStep > 1 ? (
+            {currentStep > 1 && currentStep < 3 ? (
               <Button variant="outline" size="lg" onClick={handleBack} className="gap-2">
                 <ChevronLeft className="h-4 w-4" />
                 Voltar
               </Button>
             ) : <div />}
 
-            {currentStep < STEPS.length ? (
+            {currentStep < 2 && (
               <Button onClick={handleNext} disabled={!canProceed()} size="lg" className="gap-2 min-w-[120px]">
                 Próximo
                 <ChevronRight className="h-4 w-4" />
               </Button>
-            ) : (
+            )}
+            
+            {currentStep === 2 && (
               <Button 
                 onClick={handleGenerateAnalysis} 
-                disabled={!canProceed() || loading} 
+                disabled={loading} 
                 size="lg" 
                 className="gap-2 min-w-[180px] bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
