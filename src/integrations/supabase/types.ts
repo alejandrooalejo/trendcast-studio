@@ -73,6 +73,7 @@ export type Database = {
           score_justification: string | null
           sku: string | null
           sources: Json | null
+          target_audience_size: number | null
         }
         Insert: {
           analysis_description?: string | null
@@ -90,6 +91,7 @@ export type Database = {
           score_justification?: string | null
           sku?: string | null
           sources?: Json | null
+          target_audience_size?: number | null
         }
         Update: {
           analysis_description?: string | null
@@ -107,6 +109,7 @@ export type Database = {
           score_justification?: string | null
           sku?: string | null
           sources?: Json | null
+          target_audience_size?: number | null
         }
         Relationships: [
           {
