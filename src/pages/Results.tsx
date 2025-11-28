@@ -240,18 +240,37 @@ export default function Results() {
                                 
                                 {/* Recommended Quantity */}
                                 {product.recommended_quantity && (
-                                  <div className="mt-3 p-3 bg-primary/5 border border-primary/20 rounded-lg">
-                                    <div className="flex items-center justify-between">
-                                      <span className="text-sm font-medium text-primary">
-                                        Quantidade Recomendada
-                                      </span>
-                                      <span className="text-lg font-bold text-primary">
-                                        {product.recommended_quantity} unidades
-                                      </span>
+                                  <div className="mt-3 space-y-2">
+                                    <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium text-primary">
+                                          Quantidade Recomendada
+                                        </span>
+                                        <span className="text-lg font-bold text-primary">
+                                          {product.recommended_quantity} unidades
+                                        </span>
+                                      </div>
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Baseado no score de demanda
+                                      </p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Baseado no score de demanda
-                                    </p>
+                                    
+                                    {/* Target Audience Size */}
+                                    {product.target_audience_size && (
+                                      <div className="p-3 bg-accent/5 border border-accent/20 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-sm font-medium text-accent-foreground">
+                                            Público-Alvo Necessário
+                                          </span>
+                                          <span className="text-lg font-bold text-accent-foreground">
+                                            {product.target_audience_size.toLocaleString('pt-BR')} pessoas
+                                          </span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Para garantir a venda de {product.recommended_quantity} unidades
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>

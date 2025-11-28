@@ -217,7 +217,22 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
       recommendedQuantity = Math.floor(10 + demandScore * 0.5);
     }
 
+    // Calculate target audience size based on demand score and recommended quantity
+    // Higher demand score = higher expected conversion rate
+    let conversionRate = 0.01; // default 1%
+    
+    if (demandScore >= 80) {
+      conversionRate = 0.05; // 5% conversion for high demand
+    } else if (demandScore >= 60) {
+      conversionRate = 0.03; // 3% conversion for good demand
+    } else if (demandScore >= 40) {
+      conversionRate = 0.02; // 2% conversion for moderate demand
+    }
+    
+    const targetAudienceSize = Math.ceil(recommendedQuantity / conversionRate);
+
     console.log(`Calculated recommended quantity: ${recommendedQuantity} for demand score: ${demandScore}`);
+    console.log(`Target audience size: ${targetAudienceSize} (conversion rate: ${conversionRate * 100}%)`);
 
     // Save product analysis to database
     const { data: productData, error: productError } = await supabase
@@ -234,7 +249,8 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
         insights: analysisData.insights || [],
         analysis_description: analysisData.analysis_description || null,
         sources: analysisData.sources || [],
-        recommended_quantity: recommendedQuantity
+        recommended_quantity: recommendedQuantity,
+        target_audience_size: targetAudienceSize
       })
       .select()
       .single();
