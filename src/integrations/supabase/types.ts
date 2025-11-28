@@ -64,10 +64,12 @@ export type Database = {
           color: string | null
           created_at: string | null
           demand_score: number | null
+          estimated_price: number | null
           fabric: string | null
           id: string
           image_url: string | null
           insights: Json | null
+          projected_revenue: number | null
           recommended_quantity: number | null
           risk_level: string | null
           score_justification: string | null
@@ -82,10 +84,12 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           demand_score?: number | null
+          estimated_price?: number | null
           fabric?: string | null
           id?: string
           image_url?: string | null
           insights?: Json | null
+          projected_revenue?: number | null
           recommended_quantity?: number | null
           risk_level?: string | null
           score_justification?: string | null
@@ -100,10 +104,12 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           demand_score?: number | null
+          estimated_price?: number | null
           fabric?: string | null
           id?: string
           image_url?: string | null
           insights?: Json | null
+          projected_revenue?: number | null
           recommended_quantity?: number | null
           risk_level?: string | null
           score_justification?: string | null
