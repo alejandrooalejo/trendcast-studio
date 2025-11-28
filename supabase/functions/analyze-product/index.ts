@@ -88,6 +88,7 @@ Forneça uma análise COMPLETA e ESPECÍFICA em JSON:
   "detected_style": "Modelagem/corte identificado",
   "alignment_score": 85,
   "demand_projection": 72,
+  "estimated_market_price": 89.90,
   "sources": [
     {"source": "Google Trends", "count": 1200},
     {"source": "Instagram Fashion", "count": 850},
@@ -126,14 +127,19 @@ REGRAS CRÍTICAS:
    - Alinhamento de cor com cores em alta (peso: 35%)
    - Alinhamento de tecido com materiais trending (peso: 30%)
    - Alinhamento de estilo com modelagens populares (peso: 35%)
-4. sources: Array de objetos com {source: string, count: number} usando os dados REAIS fornecidos na seção "DADOS DE FONTES DISPONÍVEIS". Use as quantidades exatas informadas!
-5. risk_level: 
+4. estimated_market_price: Preço médio de mercado estimado em R$ baseado na categoria${category ? ` "${category}"` : ''}, qualidade percebida, tendências e posicionamento. Considere:
+   - Categoria do produto e faixa de preço típica
+   - Qualidade dos materiais e acabamento visíveis
+   - Alinhamento com tendências (produtos mais alinhados podem ter preço premium)
+   - Valor justo de mercado para o público-alvo
+5. sources: Array de objetos com {source: string, count: number} usando os dados REAIS fornecidos na seção "DADOS DE FONTES DISPONÍVEIS". Use as quantidades exatas informadas!
+6. risk_level: 
    - "low" se demand_projection > 75
    - "medium" se demand_projection 50-75
    - "high" se demand_projection < 50
-6. Insights: Forneça 3-5 insights CONCRETOS, não genéricos
-7. Improvements: Liste 2-4 melhorias ACIONÁVEIS baseadas nas tendências REAIS fornecidas
-8. Comparison: Compare CADA aspecto do produto com CADA tendência relevante fornecida
+7. Insights: Forneça 3-5 insights CONCRETOS, não genéricos
+8. Improvements: Liste 2-4 melhorias ACIONÁVEIS baseadas nas tendências REAIS fornecidas
+9. Comparison: Compare CADA aspecto do produto com CADA tendência relevante fornecida
 
 IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendências genéricas!`;
 
@@ -230,9 +236,14 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
     }
     
     const targetAudienceSize = Math.ceil(recommendedQuantity / conversionRate);
+    
+    // Extract estimated price from AI response
+    const estimatedPrice = analysisData.estimated_market_price || 0;
+    const projectedRevenue = estimatedPrice * recommendedQuantity;
 
     console.log(`Calculated recommended quantity: ${recommendedQuantity} for demand score: ${demandScore}`);
     console.log(`Target audience size: ${targetAudienceSize} (conversion rate: ${conversionRate * 100}%)`);
+    console.log(`Estimated price: R$ ${estimatedPrice.toFixed(2)}, Projected revenue: R$ ${projectedRevenue.toFixed(2)}`);
 
     // Save product analysis to database
     const { data: productData, error: productError } = await supabase
@@ -250,7 +261,9 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
         analysis_description: analysisData.analysis_description || null,
         sources: analysisData.sources || [],
         recommended_quantity: recommendedQuantity,
-        target_audience_size: targetAudienceSize
+        target_audience_size: targetAudienceSize,
+        estimated_price: estimatedPrice,
+        projected_revenue: projectedRevenue
       })
       .select()
       .single();

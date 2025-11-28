@@ -271,6 +271,41 @@ export default function Results() {
                                         </p>
                                       </div>
                                     )}
+                                    
+                                    {/* Price and Revenue */}
+                                    {product.estimated_price && (
+                                      <>
+                                        <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                                          <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium">
+                                              Preço Estimado
+                                            </span>
+                                            <span className="text-lg font-bold">
+                                              R$ {product.estimated_price.toFixed(2)}
+                                            </span>
+                                          </div>
+                                          <p className="text-xs text-muted-foreground mt-1">
+                                            Baseado em tendências de mercado
+                                          </p>
+                                        </div>
+                                        
+                                        {product.projected_revenue && (
+                                          <div className="p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
+                                            <div className="flex items-center justify-between">
+                                              <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                                Receita Projetada
+                                              </span>
+                                              <span className="text-lg font-bold text-green-700 dark:text-green-400">
+                                                R$ {product.projected_revenue.toFixed(2)}
+                                              </span>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                              {product.recommended_quantity} unidades × R$ {product.estimated_price.toFixed(2)}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </>
+                                    )}
                                   </div>
                                 )}
                               </div>
