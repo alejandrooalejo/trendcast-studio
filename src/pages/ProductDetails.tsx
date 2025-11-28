@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle } from "lucide-react";
+import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -69,6 +69,62 @@ export default function ProductDetails() {
     if (riskLower === "baixo" || riskLower === "low") return "Baixo Risco";
     if (riskLower === "medio" || riskLower === "medium" || riskLower === "médio") return "Risco Moderado";
     return "Risco Desconhecido";
+  };
+
+  const getSourceIcon = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram') || name.includes('tiktok') || name.includes('social')) {
+      return <Instagram className="h-4 w-4" />;
+    }
+    if (name.includes('google') || name.includes('trends')) {
+      return <Search className="h-4 w-4" />;
+    }
+    if (name.includes('pinterest')) {
+      return <Globe className="h-4 w-4" />;
+    }
+    if (name.includes('zara') || name.includes('h&m') || name.includes('shein') || name.includes('renner') || name.includes('ecommerce') || name.includes('e-commerce')) {
+      return <ShoppingBag className="h-4 w-4" />;
+    }
+    if (name.includes('wgsn') || name.includes('vogue') || name.includes('fashion') || name.includes('pantone')) {
+      return <TrendingUpIcon className="h-4 w-4" />;
+    }
+    return <Link2 className="h-4 w-4" />;
+  };
+
+  const getSourceColor = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram') || name.includes('tiktok')) {
+      return 'from-pink-500/10 to-purple-500/10 border-pink-500/30 text-pink-700';
+    }
+    if (name.includes('google') || name.includes('trends')) {
+      return 'from-blue-500/10 to-cyan-500/10 border-blue-500/30 text-blue-700';
+    }
+    if (name.includes('pinterest')) {
+      return 'from-red-500/10 to-rose-500/10 border-red-500/30 text-red-700';
+    }
+    if (name.includes('zara') || name.includes('h&m') || name.includes('shein') || name.includes('renner')) {
+      return 'from-emerald-500/10 to-green-500/10 border-emerald-500/30 text-emerald-700';
+    }
+    if (name.includes('wgsn') || name.includes('vogue') || name.includes('fashion') || name.includes('pantone')) {
+      return 'from-violet-500/10 to-purple-500/10 border-violet-500/30 text-violet-700';
+    }
+    return 'from-slate-500/10 to-gray-500/10 border-slate-500/30 text-slate-700';
+  };
+
+  const getSourceDescription = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram')) return 'Rede social - Tendências visuais';
+    if (name.includes('tiktok')) return 'Rede social - Vídeos virais';
+    if (name.includes('google') && name.includes('trends')) return 'Mecanismo de busca - Volume de pesquisas';
+    if (name.includes('pinterest')) return 'Plataforma visual - Pins e boards';
+    if (name.includes('zara')) return 'E-commerce - Fast fashion';
+    if (name.includes('h&m')) return 'E-commerce - Moda acessível';
+    if (name.includes('shein')) return 'E-commerce - Moda rápida online';
+    if (name.includes('renner')) return 'E-commerce - Varejo brasileiro';
+    if (name.includes('wgsn')) return 'Agência - Previsão de tendências';
+    if (name.includes('vogue')) return 'Mídia - Revista de moda';
+    if (name.includes('pantone')) return 'Instituto - Cores e padrões';
+    return 'Fonte de dados de moda';
   };
 
   if (loading) {
@@ -453,11 +509,19 @@ export default function ProductDetails() {
                             {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "i"}
                           </Badge>
                         </div>
-                        <div className="flex-1 space-y-1">
+                        <div className="flex-1 space-y-2">
                           <p className="font-semibold text-sm text-foreground">{insight.title}</p>
                           <p className="text-sm text-muted-foreground leading-relaxed">
                             {insight.description}
                           </p>
+                          {insight.supporting_data && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">Fonte:</span>
+                              <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20">
+                                {insight.supporting_data}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -528,35 +592,70 @@ export default function ProductDetails() {
               </div>
             )}
 
-            {/* Sources Section */}
+            {/* Sources Section - Enhanced */}
             {product.sources && product.sources.length > 0 && (
-              <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
-                <div className="flex items-start gap-3 mb-4">
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-6 border border-primary/20">
+                <div className="flex items-start gap-3 mb-5">
                   <div className="p-2 bg-primary/10 rounded-lg">
-                    <Link2 className="h-4 w-4 text-primary" />
+                    <Link2 className="h-5 w-5 text-primary" />
                   </div>
-                  <p className="text-sm font-semibold text-foreground">Fontes de Dados</p>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-foreground mb-1">Fontes de Dados Utilizadas</p>
+                    <p className="text-xs text-muted-foreground">
+                      Esta análise foi baseada em {product.sources.length} fontes confiáveis de dados de moda
+                    </p>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {product.sources.map((sourceData: any, idx: number) => {
                     const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
                     const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
+                    const colorClass = getSourceColor(sourceName);
+                    const description = getSourceDescription(sourceName);
                     
                     return (
-                      <Badge 
-                        key={idx} 
-                        variant="outline" 
-                        className="bg-background border-primary/30 text-sm py-1.5 px-3"
+                      <motion.div
+                        key={idx}
+                        className={`bg-gradient-to-br ${colorClass} rounded-lg p-4 border transition-all hover:shadow-md cursor-default`}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, delay: idx * 0.05 }}
                       >
-                        {sourceName}
-                        {sourceCount && (
-                          <span className="ml-1.5 text-primary font-semibold">
-                            ({sourceCount.toLocaleString()})
-                          </span>
-                        )}
-                      </Badge>
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5">
+                            {getSourceIcon(sourceName)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm mb-0.5 truncate">
+                              {sourceName}
+                            </p>
+                            <p className="text-xs opacity-70 mb-2">
+                              {description}
+                            </p>
+                            {sourceCount && (
+                              <div className="flex items-center gap-1">
+                                <BarChart3 className="h-3 w-3 opacity-70" />
+                                <span className="text-xs font-semibold">
+                                  {sourceCount.toLocaleString()} pontos de dados
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
                     );
                   })}
+                </div>
+                
+                <div className="mt-5 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      <strong className="text-foreground">Como funciona:</strong> Cada fonte contribui com dados específicos sobre tendências de cores, tecidos e modelagens. 
+                      O número de pontos de dados indica quantas vezes aquela tendência foi identificada naquela fonte específica.
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
