@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UploadOnboarding } from "@/components/UploadOnboarding";
 
 interface UploadedFile {
   id: string;
@@ -284,6 +285,7 @@ export default function Upload() {
 
   return (
     <DashboardLayout>
+      <UploadOnboarding />
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <motion.div
