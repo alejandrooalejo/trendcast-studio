@@ -227,7 +227,7 @@ REGRAS OBRIGATÓRIAS:
 6. Cada improvement DEVE mostrar o impacto numérico no score
 7. Use os valores EXATOS de "FONTES DE DADOS" no campo sources
 8. risk_level baseado em: demand_projection > 75 = "low", 50-75 = "medium", < 50 = "high"
-9. estimated_market_price: Considere categoria${category ? ` "${category}"` : ''}, qualidade e alinhamento com tendências
+9. estimated_market_price: Faça uma pesquisa mental de mercado em grandes e-commerces brasileiros (Renner, C&A, Riachuelo, Zara, H&M, Shein) para produtos similares em categoria${category ? ` "${category}"` : ''}, tecido e modelagem. Calcule a MÉDIA de preços encontrados. Considere qualidade e alinhamento com tendências para ajustar +/- 15% da média.
 10. estimated_production_cost: Análise REALISTA baseada em materiais e complexidade visíveis (considere mercado brasileiro de confecção)
 
 IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem SEMPRE gerará os mesmos scores!`;
