@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Target, Package, Users, DollarSign, Factory, TrendingUp, PiggyBank, Wallet, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -308,7 +308,7 @@ export default function ProductDetails() {
 
                 {/* Summary Financial Cards */}
                 {product.estimated_price && product.estimated_production_cost && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-6 border border-primary/20">
                       <div className="flex items-center gap-2 mb-3">
                         <TrendingUp className="h-5 w-5 text-primary" />
@@ -318,30 +318,6 @@ export default function ProductDetails() {
                         {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
                       </div>
                     </div>
-
-                    {product.projected_revenue && (
-                      <div className="bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent rounded-xl p-6 border border-green-500/20">
-                        <div className="flex items-center gap-2 mb-3">
-                          <PiggyBank className="h-5 w-5 text-green-600 dark:text-green-500" />
-                          <span className="text-sm font-medium text-muted-foreground">Receita</span>
-                        </div>
-                        <div className="text-5xl font-bold font-display text-green-600 dark:text-green-500">
-                          {product.projected_revenue.toFixed(2)}
-                        </div>
-                      </div>
-                    )}
-
-                    {product.projected_revenue && (
-                      <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent rounded-xl p-6 border border-emerald-500/20">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-500" />
-                          <span className="text-sm font-medium text-muted-foreground">Lucro</span>
-                        </div>
-                        <div className="text-5xl font-bold font-display text-emerald-600 dark:text-emerald-500">
-                          {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
