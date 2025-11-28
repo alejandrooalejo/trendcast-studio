@@ -130,11 +130,22 @@ export default function ProductDetails() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Carregando detalhes...</p>
-          </div>
+        <div className="flex flex-col items-center justify-center min-h-[500px]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-center space-y-4"
+          >
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
+              <Target className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">Carregando detalhes</p>
+              <p className="text-sm text-muted-foreground mt-1">Buscando informações do produto...</p>
+            </div>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
@@ -143,12 +154,27 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-          <p className="text-muted-foreground text-lg">Produto não encontrado</p>
-          <Button onClick={() => navigate("/results")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Resultados
-          </Button>
+        <div className="flex flex-col items-center justify-center min-h-[500px] px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center space-y-6 max-w-md"
+          >
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center">
+              <AlertCircle className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-semibold text-foreground">Produto não encontrado</h2>
+              <p className="text-muted-foreground">
+                O produto que você está procurando não existe ou foi removido.
+              </p>
+            </div>
+            <Button onClick={() => navigate("/results")} size="lg" className="mt-4">
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Voltar para Resultados
+            </Button>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
