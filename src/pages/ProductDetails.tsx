@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Eye, Target, Package, DollarSign, Factory, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -209,6 +209,211 @@ export default function ProductDetails() {
                     animate={{ width: `${product.demand_score}%` }}
                     transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
                   />
+                </div>
+                {product.score_justification && (
+                  <div className="bg-muted/20 rounded-lg p-3 border border-border/50">
+                    <p className="text-xs text-muted-foreground">{product.score_justification}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Scoring Breakdown Section */}
+            {product.insights?.scoring_breakdown && (
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Breakdown do Score</p>
+                    <p className="text-xs text-muted-foreground">{product.insights.scoring_breakdown.score_interpretation}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {['color_component', 'fabric_component', 'style_component'].map((component) => {
+                    const data = product.insights.scoring_breakdown[component];
+                    if (!data) return null;
+                    
+                    const componentName = component === 'color_component' ? 'Cor' : 
+                                        component === 'fabric_component' ? 'Tecido' : 'Modelagem';
+                    
+                    return (
+                      <motion.div
+                        key={component}
+                        className="bg-background/60 rounded-lg p-4 border border-border/50"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-foreground">{componentName}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{data.weight}% do total</span>
+                            <Badge variant="outline" className="text-xs">
+                              {data.weighted_score.toFixed(1)} pts
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${data.raw_score}%` }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{data.explanation}</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Confidence Levels Section */}
+            {product.insights?.confidence_levels && (
+              <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Níveis de Confiança</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Object.entries(product.insights.confidence_levels).map(([key, value]: [string, any]) => {
+                    if (key === 'overall_confidence') return null;
+                    
+                    const label = key === 'color_detection' ? 'Detecção de Cor' :
+                                 key === 'fabric_detection' ? 'Detecção de Tecido' :
+                                 key === 'style_detection' ? 'Detecção de Modelagem' : key;
+                    
+                    const confidence = Number(value);
+                    const color = confidence >= 80 ? 'text-emerald-500' :
+                                 confidence >= 60 ? 'text-amber-500' : 'text-rose-500';
+                    
+                    return (
+                      <div key={key} className="bg-background/60 rounded-lg p-3 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                          <span className={`text-sm font-bold ${color}`}>{confidence}%</span>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            className={`h-full ${confidence >= 80 ? 'bg-emerald-500' : confidence >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${confidence}%` }}
+                            transition={{ duration: 0.6 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {product.insights.confidence_levels.overall_confidence && (
+                  <div className="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground">Confiança Geral</span>
+                      <span className="text-xl font-bold text-primary">
+                        {product.insights.confidence_levels.overall_confidence}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Improvements Section */}
+            {product.insights?.improvements && product.insights.improvements.length > 0 && (
+              <div className="bg-gradient-to-br from-amber-500/5 to-transparent rounded-xl p-5 border border-amber-500/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-amber-500/10 rounded-lg">
+                    <ArrowUpCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Oportunidades de Melhoria</p>
+                    <p className="text-xs text-muted-foreground">Ajustes que podem aumentar o score de demanda</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {product.insights.improvements.map((improvement: any, idx: number) => (
+                    <motion.div
+                      key={idx}
+                      className="bg-background/60 rounded-lg p-4 border border-border/50"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.1 }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {improvement.aspect}
+                            </Badge>
+                            {improvement.priority && (
+                              <Badge 
+                                variant={improvement.priority === 'high' ? 'destructive' : 
+                                       improvement.priority === 'medium' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {improvement.priority === 'high' ? 'Alta Prioridade' :
+                                 improvement.priority === 'medium' ? 'Média' : 'Baixa'}
+                              </Badge>
+                            )}
+                            {improvement.implementation_difficulty && (
+                              <span className="text-xs text-muted-foreground">
+                                Dificuldade: {improvement.implementation_difficulty === 'easy' ? 'Fácil' :
+                                            improvement.implementation_difficulty === 'medium' ? 'Média' : 'Difícil'}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Atual:</span>
+                              <span className="font-medium">{improvement.current}</span>
+                              {improvement.current_score && (
+                                <Badge variant="outline" className="text-xs ml-auto">
+                                  {improvement.current_score} pts
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4 text-emerald-500" />
+                              <span className="text-muted-foreground">Sugerido:</span>
+                              <span className="font-medium text-emerald-600">{improvement.suggested}</span>
+                              {improvement.suggested_score && (
+                                <Badge variant="secondary" className="text-xs ml-auto">
+                                  {improvement.suggested_score} pts
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {improvement.score_increase && improvement.new_total_score && (
+                          <div className="ml-4 text-right">
+                            <div className="text-2xl font-bold text-emerald-600">
+                              +{improvement.score_increase}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Score final: {improvement.new_total_score}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-3 p-3 bg-muted/30 rounded-lg">
+                        {improvement.reason}
+                      </p>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
             )}
