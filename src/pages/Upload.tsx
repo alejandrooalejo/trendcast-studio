@@ -202,10 +202,10 @@ export default function Upload() {
 
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low': return 'text-foreground bg-secondary border-border';
-      case 'medium': return 'text-muted-foreground bg-muted border-border';
-      case 'high': return 'text-foreground bg-accent border-border';
-      default: return 'text-muted-foreground bg-muted border-border';
+      case 'low': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+      case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200';
+      case 'high': return 'text-rose-600 bg-rose-50 border-rose-200';
+      default: return 'text-slate-600 bg-slate-50 border-slate-200';
     }
   };
 
@@ -360,8 +360,8 @@ export default function Upload() {
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-border">
                       <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
                       {file.analysis && (
-                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center backdrop-blur-[1px]">
-                          <CheckCircle2 className="h-8 w-8 text-primary" />
+                        <div className="absolute inset-0 bg-emerald-500/15 flex items-center justify-center backdrop-blur-[1px]">
+                          <CheckCircle2 className="h-8 w-8 text-emerald-600" />
                         </div>
                       )}
                     </div>

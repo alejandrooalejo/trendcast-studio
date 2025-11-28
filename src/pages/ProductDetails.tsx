@@ -48,12 +48,12 @@ export default function ProductDetails() {
   const getTrendIcon = (riskLevel: string) => {
     const riskLower = riskLevel?.toLowerCase();
     if (riskLower === "baixo" || riskLower === "low") {
-      return <CheckCircle2 className="h-5 w-5 text-foreground" />;
+      return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
     }
     if (riskLower === "alto" || riskLower === "high") {
-      return <AlertTriangle className="h-5 w-5 text-muted-foreground" />;
+      return <AlertTriangle className="h-5 w-5 text-rose-400" />;
     }
-    return <AlertCircle className="h-5 w-5 text-foreground" />;
+    return <AlertCircle className="h-5 w-5 text-amber-500" />;
   };
 
   const getRiskBadge = (risk: string) => {
@@ -233,9 +233,9 @@ export default function ProductDetails() {
                     >
                       <div className="flex items-start gap-3">
                         <div className={`p-2 rounded-lg ${
-                          insight.type === "positive" ? "bg-secondary" :
-                          insight.type === "negative" ? "bg-muted" :
-                          "bg-primary/10"
+                          insight.type === "positive" ? "bg-emerald-100/50" :
+                          insight.type === "negative" ? "bg-rose-100/50" :
+                          "bg-primary/5"
                         }`}>
                           <Badge 
                             variant={
