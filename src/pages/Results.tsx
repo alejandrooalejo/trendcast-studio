@@ -158,10 +158,12 @@ export default function Results() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.4, delay: index * 0.1 }}
+                        className="border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 bg-card"
                       >
-                        <div className="flex gap-4 p-6 border rounded-xl hover:shadow-md transition-all duration-300 bg-card">
+                        {/* Product Header */}
+                        <div className="flex gap-6 p-6 border-b bg-muted/20">
                           {product.image_url && (
-                            <div className="w-32 h-32 bg-muted rounded-xl flex-shrink-0 overflow-hidden border-2 border-border">
+                            <div className="w-32 h-32 bg-background rounded-xl flex-shrink-0 overflow-hidden border-2 border-border shadow-sm">
                               <img 
                                 src={product.image_url} 
                                 alt={product.sku || "Produto"} 
@@ -170,14 +172,13 @@ export default function Results() {
                             </div>
                           )}
 
-                          <div className="flex-1 space-y-4">
-                            {/* Header */}
+                          <div className="flex-1 flex flex-col justify-center gap-2">
                             <div className="flex items-start justify-between">
-                              <div className="space-y-1">
-                                <h3 className="text-xl font-semibold">
+                              <div>
+                                <h3 className="text-2xl font-bold font-display">
                                   {product.sku || `Produto ${index + 1}`}
                                 </h3>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                                   <span>{product.category || "Sem categoria"}</span>
                                   {product.color && (
                                     <>
@@ -187,258 +188,251 @@ export default function Results() {
                                   )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {getTrendIcon(product.risk_level)}
-                                {product.risk_level && (
-                                  <Badge 
-                                    variant={getRiskBadge(product.risk_level)}
-                                    className="text-sm"
-                                  >
+                              {product.risk_level && (
+                                <Badge 
+                                  variant={getRiskBadge(product.risk_level)}
+                                  className="text-sm h-7 px-4"
+                                >
+                                  <div className="flex items-center gap-1.5">
+                                    {getTrendIcon(product.risk_level)}
                                     {product.risk_level}
-                                  </Badge>
-                                )}
+                                  </div>
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                          {/* Analysis Description */}
+                          {product.analysis_description && (
+                            <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                  <Eye className="h-4 w-4 text-primary" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-semibold text-foreground mb-1">Análise Visual</p>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {product.analysis_description}
+                                  </p>
+                                </div>
                               </div>
                             </div>
+                          )}
 
-                            {/* Analysis Description */}
-                            {product.analysis_description && (
-                              <div className="p-4 bg-muted/50 rounded-lg border border-border">
-                                <div className="flex items-start gap-2 mb-2">
-                                  <Eye className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                                  <p className="text-sm font-medium text-primary">Análise Visual</p>
-                                </div>
-                                <p className="text-sm text-muted-foreground leading-relaxed ml-6">
-                                  {product.analysis_description}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Demand Score */}
-                            {product.demand_score && (
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Target className="h-4 w-4 text-primary" />
-                                    <span className="text-sm font-medium">Score de Demanda</span>
+                          {/* Demand Score Section */}
+                          {product.demand_score && (
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="p-2 bg-primary/10 rounded-lg">
+                                    <Target className="h-5 w-5 text-primary" />
                                   </div>
-                                  <span className="text-2xl font-bold">{product.demand_score}<span className="text-sm text-muted-foreground">/100</span></span>
+                                  <span className="text-base font-semibold">Score de Demanda</span>
                                 </div>
-                                <div className="h-3 bg-muted rounded-full overflow-hidden border border-border">
-                                  <motion.div
-                                    className={`h-full transition-colors ${
-                                      product.demand_score >= 80
-                                        ? "bg-gradient-to-r from-green-500 to-green-600"
-                                        : product.demand_score >= 60
-                                        ? "bg-gradient-to-r from-primary to-primary/80"
-                                        : "bg-gradient-to-r from-destructive to-destructive/80"
-                                    }`}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${product.demand_score}%` }}
-                                    transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-                                  />
+                                <div className="text-right">
+                                  <span className="text-4xl font-bold font-display">{product.demand_score}</span>
+                                  <span className="text-lg text-muted-foreground">/100</span>
                                 </div>
-                                
-                                {/* Financial Metrics Grid */}
-                                {product.recommended_quantity && (
-                                  <div className="mt-4">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                      {/* Quantidade Recomendada */}
-                                      <Card className="border-border/50">
-                                        <CardContent className="p-4">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <Package className="h-4 w-4 text-primary" />
-                                          </div>
-                                          <div className="text-2xl font-bold font-display">
-                                            {product.recommended_quantity}
-                                          </div>
-                                          <p className="text-xs text-muted-foreground mt-1">
-                                            Unidades
-                                          </p>
-                                        </CardContent>
-                                      </Card>
+                              </div>
+                              <div className="h-4 bg-muted rounded-full overflow-hidden border border-border">
+                                <motion.div
+                                  className={`h-full transition-colors ${
+                                    product.demand_score >= 80
+                                      ? "bg-gradient-to-r from-green-500 to-green-600"
+                                      : product.demand_score >= 60
+                                      ? "bg-gradient-to-r from-primary to-primary/80"
+                                      : "bg-gradient-to-r from-destructive to-destructive/80"
+                                  }`}
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${product.demand_score}%` }}
+                                  transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                                />
+                              </div>
+                            </div>
+                          )}
 
-                                      {/* Público-Alvo */}
-                                      {product.target_audience_size && (
-                                        <Card className="border-border/50">
-                                          <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                              <Users className="h-4 w-4 text-primary" />
-                                            </div>
-                                            <div className="text-2xl font-bold font-display">
-                                              {(product.target_audience_size / 1000).toFixed(1)}k
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                              Público-alvo
-                                            </p>
-                                          </CardContent>
-                                        </Card>
-                                      )}
+                          {/* Financial Metrics */}
+                          {product.recommended_quantity && (
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <Package className="h-4 w-4 text-primary" />
+                                  </div>
+                                  <div className="text-3xl font-bold font-display">
+                                    {product.recommended_quantity}
+                                  </div>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Unidades
+                                  </p>
+                                </div>
 
-                                      {/* Preço de Venda */}
-                                      {product.estimated_price && (
-                                        <Card className="border-border/50">
-                                          <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                              <DollarSign className="h-4 w-4 text-primary" />
-                                            </div>
-                                            <div className="text-2xl font-bold font-display">
-                                              R$ {product.estimated_price.toFixed(2)}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                              Preço de venda
-                                            </p>
-                                          </CardContent>
-                                        </Card>
-                                      )}
-
-                                      {/* Custo de Produção */}
-                                      {product.estimated_production_cost && (
-                                        <Card className="border-border/50">
-                                          <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                              <Factory className="h-4 w-4 text-primary" />
-                                            </div>
-                                            <div className="text-2xl font-bold font-display">
-                                              R$ {product.estimated_production_cost.toFixed(2)}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                              Custo unitário
-                                            </p>
-                                          </CardContent>
-                                        </Card>
-                                      )}
+                                {product.target_audience_size && (
+                                  <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Users className="h-4 w-4 text-primary" />
                                     </div>
+                                    <div className="text-3xl font-bold font-display">
+                                      {(product.target_audience_size / 1000).toFixed(1)}k
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Público-alvo
+                                    </p>
+                                  </div>
+                                )}
 
-                                    {/* Summary Cards */}
-                                    {product.estimated_price && product.estimated_production_cost && (
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-                                        {/* Margem de Lucro */}
-                                        <Card className="border-border/50 bg-gradient-to-br from-primary/5 to-transparent">
-                                          <CardContent className="p-4">
-                                            <div className="flex items-center justify-between mb-2">
-                                              <TrendingUp className="h-4 w-4 text-primary" />
-                                              <span className="text-xs text-muted-foreground">Margem</span>
-                                            </div>
-                                            <div className="text-2xl font-bold font-display text-primary">
-                                              {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
-                                            </div>
-                                          </CardContent>
-                                        </Card>
+                                {product.estimated_price && (
+                                  <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <DollarSign className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="text-3xl font-bold font-display">
+                                      {product.estimated_price.toFixed(2)}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Preço de venda
+                                    </p>
+                                  </div>
+                                )}
 
-                                        {/* Receita Projetada */}
-                                        {product.projected_revenue && (
-                                          <Card className="border-border/50 bg-gradient-to-br from-green-500/5 to-transparent">
-                                            <CardContent className="p-4">
-                                              <div className="flex items-center justify-between mb-2">
-                                                <PiggyBank className="h-4 w-4 text-green-600 dark:text-green-500" />
-                                                <span className="text-xs text-muted-foreground">Receita</span>
-                                              </div>
-                                              <div className="text-2xl font-bold font-display text-green-600 dark:text-green-500">
-                                                R$ {product.projected_revenue.toFixed(2)}
-                                              </div>
-                                            </CardContent>
-                                          </Card>
-                                        )}
-
-                                        {/* Lucro Líquido */}
-                                        {product.projected_revenue && (
-                                          <Card className="border-border/50 bg-gradient-to-br from-emerald-500/5 to-transparent">
-                                            <CardContent className="p-4">
-                                              <div className="flex items-center justify-between mb-2">
-                                                <Wallet className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
-                                                <span className="text-xs text-muted-foreground">Lucro</span>
-                                              </div>
-                                              <div className="text-2xl font-bold font-display text-emerald-600 dark:text-emerald-500">
-                                                R$ {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
-                                              </div>
-                                            </CardContent>
-                                          </Card>
-                                        )}
-                                      </div>
-                                    )}
+                                {product.estimated_production_cost && (
+                                  <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Factory className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="text-3xl font-bold font-display">
+                                      {product.estimated_production_cost.toFixed(2)}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                      Custo unitário
+                                    </p>
                                   </div>
                                 )}
                               </div>
-                            )}
 
-                            {/* Score Justification - Now Sources */}
-                            {product.sources && product.sources.length > 0 && (
-                              <>
-                                <Separator className="my-4" />
-                                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                                  <div className="flex items-start gap-2 mb-3">
-                                    <Link2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                                    <p className="text-sm font-semibold text-primary">Fontes de Dados</p>
+                              {/* Summary Financial Cards */}
+                              {product.estimated_price && product.estimated_production_cost && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                                  <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <TrendingUp className="h-5 w-5 text-primary" />
+                                      <span className="text-sm font-medium text-muted-foreground">Margem</span>
+                                    </div>
+                                    <div className="text-4xl font-bold font-display text-primary">
+                                      {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
+                                    </div>
                                   </div>
-                                  <div className="flex flex-wrap gap-2 ml-6">
-                                    {product.sources.map((sourceData: any, idx: number) => {
-                                      // Handle both old format (string) and new format (object)
-                                      const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
-                                      const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
-                                      
-                                      return (
+
+                                  {product.projected_revenue && (
+                                    <div className="bg-gradient-to-br from-green-500/10 via-green-500/5 to-transparent rounded-xl p-5 border border-green-500/20">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <PiggyBank className="h-5 w-5 text-green-600 dark:text-green-500" />
+                                        <span className="text-sm font-medium text-muted-foreground">Receita</span>
+                                      </div>
+                                      <div className="text-4xl font-bold font-display text-green-600 dark:text-green-500">
+                                        {product.projected_revenue.toFixed(2)}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {product.projected_revenue && (
+                                    <div className="bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent rounded-xl p-5 border border-emerald-500/20">
+                                      <div className="flex items-center gap-2 mb-3">
+                                        <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-500" />
+                                        <span className="text-sm font-medium text-muted-foreground">Lucro</span>
+                                      </div>
+                                      <div className="text-4xl font-bold font-display text-emerald-600 dark:text-emerald-500">
+                                        {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Sources Section */}
+                          {product.sources && product.sources.length > 0 && (
+                            <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+                              <div className="flex items-start gap-3 mb-4">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                  <Link2 className="h-4 w-4 text-primary" />
+                                </div>
+                                <p className="text-sm font-semibold text-foreground">Fontes de Dados</p>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {product.sources.map((sourceData: any, idx: number) => {
+                                  const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
+                                  const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
+                                  
+                                  return (
+                                    <Badge 
+                                      key={idx} 
+                                      variant="outline" 
+                                      className="bg-background border-primary/30 text-sm py-1.5 px-3"
+                                    >
+                                      {sourceName}
+                                      {sourceCount && (
+                                        <span className="ml-1.5 text-primary font-semibold">
+                                          ({sourceCount.toLocaleString()})
+                                        </span>
+                                      )}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Insights Section */}
+                          {product.insights && product.insights.length > 0 && (
+                            <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+                              <div className="flex items-start gap-3 mb-4">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                  <Lightbulb className="h-4 w-4 text-primary" />
+                                </div>
+                                <p className="text-sm font-semibold text-foreground">Principais Insights</p>
+                              </div>
+                              <div className="grid gap-3">
+                                {product.insights.slice(0, 3).map((insight: any, idx: number) => (
+                                  <motion.div 
+                                    key={idx} 
+                                    className="bg-background/60 rounded-lg p-4 border border-border/50"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ duration: 0.3, delay: idx * 0.1 }}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div className={`p-2 rounded-lg ${
+                                        insight.type === "positive" ? "bg-green-500/10" :
+                                        insight.type === "negative" ? "bg-red-500/10" :
+                                        "bg-primary/10"
+                                      }`}>
                                         <Badge 
-                                          key={idx} 
-                                          variant="outline" 
-                                          className="bg-background border-primary/30"
+                                          variant={
+                                            insight.type === "positive" ? "secondary" :
+                                            insight.type === "negative" ? "destructive" :
+                                            "default"
+                                          }
+                                          className="text-xs h-5 w-5 flex items-center justify-center p-0"
                                         >
-                                          {sourceName}
-                                          {sourceCount && (
-                                            <span className="ml-1.5 text-primary font-semibold">
-                                              ({sourceCount.toLocaleString()})
-                                            </span>
-                                          )}
+                                          {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "i"}
                                         </Badge>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-
-                            {/* Insights */}
-                            {product.insights && product.insights.length > 0 && (
-                              <>
-                                <Separator className="my-4" />
-                                <div className="space-y-3">
-                                  <div className="flex items-center gap-2">
-                                    <Lightbulb className="h-4 w-4 text-primary" />
-                                    <p className="text-sm font-semibold">Principais Insights</p>
-                                  </div>
-                                  <div className="grid gap-2 ml-6">
-                                    {product.insights.slice(0, 3).map((insight: any, idx: number) => (
-                                      <motion.div 
-                                        key={idx} 
-                                        className="p-3 bg-accent/50 rounded-lg border border-accent"
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3, delay: idx * 0.1 }}
-                                      >
-                                        <div className="flex items-start gap-2">
-                                          <Badge 
-                                            variant={
-                                              insight.type === "positive" ? "secondary" :
-                                              insight.type === "negative" ? "destructive" :
-                                              "default"
-                                            }
-                                            className="text-xs shrink-0 mt-0.5"
-                                          >
-                                            {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "→"}
-                                          </Badge>
-                                          <div className="flex-1 space-y-1">
-                                            <p className="font-medium text-sm">{insight.title}</p>
-                                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                              {insight.description}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </motion.div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
+                                      </div>
+                                      <div className="flex-1 space-y-1">
+                                        <p className="font-semibold text-sm text-foreground">{insight.title}</p>
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                          {insight.description}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </motion.div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     ))
