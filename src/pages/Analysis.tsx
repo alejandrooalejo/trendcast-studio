@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { TrendingUp, AlertTriangle, CheckCircle, ArrowLeft } from "lucide-react";
+import { TrendingUp, AlertTriangle, CheckCircle, ArrowLeft, Eye, Target, Lightbulb, CheckCircle2, AlertCircle, Link2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,11 +18,6 @@ export default function Analysis() {
   
   const [loading, setLoading] = useState(true);
   const [analysis, setAnalysis] = useState<any>(null);
-  const [trendingColors, setTrendingColors] = useState<any[]>([]);
-  const [trendingFabrics, setTrendingFabrics] = useState<any[]>([]);
-  const [trendingModels, setTrendingModels] = useState<any[]>([]);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [insights, setInsights] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
 
   useEffect(() => {
@@ -63,22 +58,14 @@ export default function Analysis() {
       if (analysisError) throw analysisError;
       setAnalysis(analysisData);
 
-      // Fetch all related data in parallel
-      const [colorsRes, fabricsRes, modelsRes, recsRes, insightsRes, productsRes] = await Promise.all([
-        supabase.from("trending_colors").select("*").eq("analysis_id", analysisId),
-        supabase.from("trending_fabrics").select("*").eq("analysis_id", analysisId),
-        supabase.from("trending_models").select("*").eq("analysis_id", analysisId),
-        supabase.from("recommendations").select("*").eq("analysis_id", analysisId),
-        supabase.from("market_insights").select("*").eq("analysis_id", analysisId),
-        supabase.from("analysis_products").select("*").eq("analysis_id", analysisId),
-      ]);
+      // Fetch products
+      const { data: productsData, error: productsError } = await supabase
+        .from("analysis_products")
+        .select("*")
+        .eq("analysis_id", analysisId);
 
-      setTrendingColors(colorsRes.data || []);
-      setTrendingFabrics(fabricsRes.data || []);
-      setTrendingModels(modelsRes.data || []);
-      setRecommendations(recsRes.data || []);
-      setInsights(insightsRes.data || []);
-      setProducts(productsRes.data || []);
+      if (productsError) throw productsError;
+      setProducts(productsData || []);
 
     } catch (error) {
       console.error("Error fetching analysis:", error);
@@ -118,8 +105,23 @@ export default function Analysis() {
     );
   }
 
-  const highRiskProducts = products.filter(p => p.risk_level?.toLowerCase() === "alto" || p.risk_level?.toLowerCase() === "high");
-  const lowRiskProducts = products.filter(p => p.risk_level?.toLowerCase() === "baixo" || p.risk_level?.toLowerCase() === "low");
+  const getTrendIcon = (riskLevel: string) => {
+    const riskLower = riskLevel?.toLowerCase();
+    if (riskLower === "baixo" || riskLower === "low") {
+      return <CheckCircle2 className="h-5 w-5 text-green-600" />;
+    }
+    if (riskLower === "alto" || riskLower === "high") {
+      return <AlertTriangle className="h-5 w-5 text-destructive" />;
+    }
+    return <AlertCircle className="h-5 w-5 text-primary" />;
+  };
+
+  const getRiskBadge = (risk: string) => {
+    const riskLower = risk?.toLowerCase();
+    if (riskLower === "alto" || riskLower === "high") return "destructive";
+    if (riskLower === "baixo" || riskLower === "low") return "secondary";
+    return "default";
+  };
 
   return (
     <DashboardLayout>
@@ -141,272 +143,180 @@ export default function Analysis() {
           </div>
         </div>
 
-        {/* Trending Colors */}
-        {trendingColors.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Cores em Tendência</CardTitle>
-                <CardDescription>Cores mais populares identificadas pela IA</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {trendingColors.map((color) => (
-                    <div key={color.id} className="p-4 border rounded-lg space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-12 h-12 rounded-lg border-2"
-                          style={{ backgroundColor: color.hex_code }}
-                        />
-                        <div className="flex-1">
-                          <p className="font-semibold">{color.name}</p>
-                          <p className="text-sm text-muted-foreground">{color.hex_code}</p>
+        <div className="space-y-8">
+          {products.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum produto analisado ainda</p>
+          ) : (
+            products.map((product: any, index: number) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <div className="flex gap-4 p-6 border-2 rounded-xl hover:shadow-md transition-all duration-300 bg-card">
+                  {product.image_url && (
+                    <div className="w-32 h-32 bg-muted rounded-xl flex-shrink-0 overflow-hidden border-2 border-border">
+                      <img 
+                        src={product.image_url} 
+                        alt={product.sku || "Produto"} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex-1 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <h3 className="text-xl font-semibold">
+                          {product.sku || `Produto ${index + 1}`}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{product.category || "Sem categoria"}</span>
+                          {product.color && (
+                            <>
+                              <span>•</span>
+                              <span>{product.color}</span>
+                            </>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Confiança</span>
-                        <span className="font-medium">{color.confidence_score}%</span>
-                      </div>
-                      {color.reason && (
-                        <p className="text-xs text-muted-foreground">{color.reason}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Trending Fabrics */}
-        {trendingFabrics.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Tecidos em Tendência</CardTitle>
-                <CardDescription>Materiais mais buscados no mercado</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {trendingFabrics.map((fabric) => (
-                    <div key={fabric.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold">{fabric.name}</p>
-                        <Badge className="bg-primary">{fabric.trend_percentage}</Badge>
-                      </div>
-                      {fabric.reason && (
-                        <p className="text-xs text-muted-foreground">{fabric.reason}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Trending Models */}
-        {trendingModels.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Modelos em Alta</CardTitle>
-                <CardDescription>Estilos e silhuetas populares</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {trendingModels.map((model) => (
-                    <div key={model.id} className="p-4 border rounded-lg space-y-2">
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold">{model.name}</p>
-                        <Badge variant="secondary">{model.popularity}</Badge>
-                      </div>
-                      {model.description && (
-                        <p className="text-sm text-muted-foreground">{model.description}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Recommendations */}
-        {recommendations.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Recomendações Estratégicas</CardTitle>
-                <CardDescription>Ações práticas baseadas na análise de dados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recommendations.map((rec, index) => (
-                    <div key={rec.id}>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            {rec.priority && (
-                              <Badge 
-                                variant={rec.priority.toLowerCase() === "alta" ? "default" : "secondary"}
-                                className={rec.priority.toLowerCase() === "alta" ? "bg-primary" : ""}
-                              >
-                                Prioridade {rec.priority}
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="font-medium mb-1">{rec.recommendation}</p>
-                        </div>
-                      </div>
-                      {index < recommendations.length - 1 && <Separator className="my-4" />}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Market Insights */}
-        {insights.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Insights de Mercado</CardTitle>
-                <CardDescription>Análises e observações do mercado de moda</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {insights.map((insight) => (
-                    <div key={insight.id} className="p-4 border rounded-lg">
-                      <p className="text-sm mb-2">{insight.insight}</p>
-                      {insight.source && (
-                        <p className="text-xs text-muted-foreground">Fonte: {insight.source}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Risk Indicators */}
-        {products.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Indicadores de Risco</CardTitle>
-                <CardDescription>Produtos analisados com seus níveis de risco</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {products.map((product, index) => (
-                    <div 
-                      key={product.id}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        {product.risk_level?.toLowerCase() === "alto" || product.risk_level?.toLowerCase() === "high" ? (
-                          <AlertTriangle className="h-5 w-5 text-destructive" />
-                        ) : product.risk_level?.toLowerCase() === "baixo" || product.risk_level?.toLowerCase() === "low" ? (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : (
-                          <TrendingUp className="h-5 w-5 text-primary" />
+                      <div className="flex items-center gap-2">
+                        {getTrendIcon(product.risk_level)}
+                        {product.risk_level && (
+                          <Badge 
+                            variant={getRiskBadge(product.risk_level)}
+                            className="text-sm"
+                          >
+                            {product.risk_level}
+                          </Badge>
                         )}
-                        <div>
-                          <p className="font-medium">{product.sku || `Produto ${index + 1}`}</p>
-                          {product.demand_score && (
-                            <p className="text-sm text-muted-foreground">Score de demanda: {product.demand_score}/100</p>
-                          )}
-                          {product.category && (
-                            <p className="text-xs text-muted-foreground">{product.category}</p>
-                          )}
+                      </div>
+                    </div>
+
+                    {/* Analysis Description */}
+                    {product.analysis_description && (
+                      <div className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex items-start gap-2 mb-2">
+                          <Eye className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm font-medium text-primary">Análise Visual</p>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed ml-6">
+                          {product.analysis_description}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Demand Score */}
+                    {product.demand_score && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Target className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium">Score de Demanda</span>
+                          </div>
+                          <span className="text-2xl font-bold">{product.demand_score}<span className="text-sm text-muted-foreground">/100</span></span>
+                        </div>
+                        <div className="h-3 bg-muted rounded-full overflow-hidden border border-border">
+                          <motion.div
+                            className={`h-full transition-colors ${
+                              product.demand_score >= 80
+                                ? "bg-gradient-to-r from-green-500 to-green-600"
+                                : product.demand_score >= 60
+                                ? "bg-gradient-to-r from-primary to-primary/80"
+                                : "bg-gradient-to-r from-destructive to-destructive/80"
+                            }`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${product.demand_score}%` }}
+                            transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                          />
                         </div>
                       </div>
-                      {product.risk_level && (
-                        <Badge 
-                          variant={
-                            product.risk_level?.toLowerCase() === "alto" || product.risk_level?.toLowerCase() === "high"
-                              ? "destructive" 
-                              : product.risk_level?.toLowerCase() === "baixo" || product.risk_level?.toLowerCase() === "low"
-                              ? "secondary"
-                              : "default"
-                          }
-                        >
-                          {product.risk_level}
-                        </Badge>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+                    )}
 
-        {/* Summary Stats */}
-        {products.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.35 }}
-          >
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-display">Resumo da Análise</CardTitle>
-                <CardDescription>Visão geral dos produtos analisados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="text-center p-4 border border-border rounded-lg">
-                    <div className="text-3xl font-display font-bold text-green-600 mb-2">
-                      {lowRiskProducts.length}
-                    </div>
-                    <p className="text-sm text-muted-foreground">Produtos com baixo risco</p>
-                  </div>
-                  <div className="text-center p-4 border border-border rounded-lg">
-                    <div className="text-3xl font-display font-bold text-primary mb-2">
-                      {products.length - highRiskProducts.length - lowRiskProducts.length}
-                    </div>
-                    <p className="text-sm text-muted-foreground">Produtos com risco médio</p>
-                  </div>
-                  <div className="text-center p-4 border border-border rounded-lg">
-                    <div className="text-3xl font-display font-bold text-destructive mb-2">
-                      {highRiskProducts.length}
-                    </div>
-                    <p className="text-sm text-muted-foreground">Produtos com alto risco</p>
+                    {/* Sources */}
+                    {product.sources && product.sources.length > 0 && (
+                      <>
+                        <Separator className="my-4" />
+                        <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                          <div className="flex items-start gap-2 mb-3">
+                            <Link2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                            <p className="text-sm font-semibold text-primary">Fontes de Dados</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2 ml-6">
+                            {product.sources.map((sourceData: any, idx: number) => {
+                              const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
+                              const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
+                              
+                              return (
+                                <Badge 
+                                  key={idx} 
+                                  variant="outline" 
+                                  className="bg-background border-primary/30"
+                                >
+                                  {sourceName}
+                                  {sourceCount && (
+                                    <span className="ml-1.5 text-primary font-semibold">
+                                      ({sourceCount.toLocaleString()})
+                                    </span>
+                                  )}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Insights */}
+                    {product.insights && product.insights.length > 0 && (
+                      <>
+                        <Separator className="my-4" />
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Lightbulb className="h-4 w-4 text-primary" />
+                            <p className="text-sm font-semibold">Principais Insights</p>
+                          </div>
+                          <div className="grid gap-2 ml-6">
+                            {product.insights.slice(0, 3).map((insight: any, idx: number) => (
+                              <motion.div 
+                                key={idx} 
+                                className="p-3 bg-accent/50 rounded-lg border border-accent"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ duration: 0.3, delay: idx * 0.1 }}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <Badge 
+                                    variant={
+                                      insight.type === "positive" ? "secondary" :
+                                      insight.type === "negative" ? "destructive" :
+                                      "default"
+                                    }
+                                    className="text-xs shrink-0 mt-0.5"
+                                  >
+                                    {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "→"}
+                                  </Badge>
+                                  <div className="flex-1 space-y-1">
+                                    <p className="font-medium text-sm">{insight.title}</p>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">
+                                      {insight.description}
+                                    </p>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+              </motion.div>
+            ))
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
