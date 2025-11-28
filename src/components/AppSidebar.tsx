@@ -50,40 +50,47 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="w-20 border-r border-border/50" collapsible="icon">
-      <SidebarContent className="gap-3 py-6">
+    <Sidebar className="border-r border-border/50">
+      <SidebarContent className="gap-3 py-6 px-3">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-3">
+            <SidebarMenu className="gap-2">
               {navigationItems.map((item) => {
                 const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild tooltip={item.title}>
+                    <SidebarMenuButton asChild>
                       <NavLink 
                         to={item.url} 
                         end={item.url === "/"}
-                        className="relative group"
+                        className="relative group w-full"
                       >
                         <div className={`
-                          relative p-3 rounded-2xl transition-all duration-300
+                          flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300
                           ${active 
-                            ? `bg-gradient-to-br ${item.bgGradient} shadow-lg scale-105` 
-                            : 'bg-muted/50 hover:bg-muted hover:scale-105'
+                            ? `bg-gradient-to-br ${item.bgGradient} shadow-lg` 
+                            : 'bg-muted/50 hover:bg-muted hover:shadow-md'
                           }
                         `}>
                           <item.icon 
-                            className={`h-6 w-6 transition-all duration-300 ${
+                            className={`h-5 w-5 flex-shrink-0 transition-all duration-300 ${
                               active 
                                 ? 'text-primary' 
                                 : 'text-muted-foreground group-hover:text-foreground'
                             }`}
                             strokeWidth={active ? 2.5 : 2}
                           />
+                          <span className={`text-sm font-medium transition-all duration-300 ${
+                            active 
+                              ? 'text-primary' 
+                              : 'text-muted-foreground group-hover:text-foreground'
+                          }`}>
+                            {item.title}
+                          </span>
                           
                           {/* Glow effect for active */}
                           {active && (
-                            <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${item.gradient} opacity-20 blur-xl -z-10`} />
+                            <div className={`absolute inset-0 rounded-xl bg-gradient-to-br ${item.gradient} opacity-15 blur-xl -z-10`} />
                           )}
                         </div>
                       </NavLink>
