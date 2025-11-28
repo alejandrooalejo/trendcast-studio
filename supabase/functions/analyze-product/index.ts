@@ -32,12 +32,20 @@ serve(async (req) => {
     
     console.log('Starting product analysis for analysisId:', analysisId);
 
-    // Check if this exact image has already been analyzed for this analysisId
+    // Generate hash of the image for duplicate detection
+    const imageHash = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(imageBase64)
+    );
+    const hashArray = Array.from(new Uint8Array(imageHash));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+    // Check if this exact image has already been analyzed for this analysisId using hash
     const { data: existingProduct, error: existingProductError } = await supabase
       .from('analysis_products')
       .select('*')
       .eq('analysis_id', analysisId)
-      .eq('image_url', imageBase64)
+      .eq('image_hash', hashHex)
       .maybeSingle();
 
     if (existingProductError && existingProductError.code !== 'PGRST116') {
@@ -400,6 +408,7 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
     const productInsertData = {
       analysis_id: analysisId,
       image_url: imageBase64,
+      image_hash: hashHex,
       sku: sku || null,
       category: category || null,
       color: analysisData.detected_color || null,
