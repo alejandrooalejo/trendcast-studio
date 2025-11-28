@@ -275,33 +275,74 @@ export default function Results() {
                                     {/* Price and Revenue */}
                                     {product.estimated_price && (
                                       <>
-                                        <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
-                                          <div className="flex items-center justify-between">
-                                            <span className="text-sm font-medium">
-                                              Preço Estimado
-                                            </span>
-                                            <span className="text-lg font-bold">
-                                              R$ {product.estimated_price.toFixed(2)}
-                                            </span>
+                                        <div className="grid grid-cols-2 gap-2">
+                                          <div className="p-3 bg-secondary/5 border border-secondary/20 rounded-lg">
+                                            <div className="space-y-1">
+                                              <span className="text-xs font-medium text-muted-foreground">
+                                                Preço de Venda
+                                              </span>
+                                              <p className="text-lg font-bold">
+                                                R$ {product.estimated_price.toFixed(2)}
+                                              </p>
+                                            </div>
                                           </div>
-                                          <p className="text-xs text-muted-foreground mt-1">
-                                            Baseado em tendências de mercado
-                                          </p>
+                                          
+                                          {product.estimated_production_cost && (
+                                            <div className="p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">
+                                              <div className="space-y-1">
+                                                <span className="text-xs font-medium text-muted-foreground">
+                                                  Custo de Produção
+                                                </span>
+                                                <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                                                  R$ {product.estimated_production_cost.toFixed(2)}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
                                         
-                                        {product.projected_revenue && (
-                                          <div className="p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
+                                        {product.estimated_production_cost && (
+                                          <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg">
                                             <div className="flex items-center justify-between">
-                                              <span className="text-sm font-medium text-green-700 dark:text-green-400">
-                                                Receita Projetada
+                                              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                                                Margem de Lucro
                                               </span>
-                                              <span className="text-lg font-bold text-green-700 dark:text-green-400">
-                                                R$ {product.projected_revenue.toFixed(2)}
+                                              <span className="text-lg font-bold text-blue-700 dark:text-blue-400">
+                                                {(((product.estimated_price - product.estimated_production_cost) / product.estimated_price * 100) || 0).toFixed(1)}%
                                               </span>
                                             </div>
                                             <p className="text-xs text-muted-foreground mt-1">
-                                              {product.recommended_quantity} unidades × R$ {product.estimated_price.toFixed(2)}
+                                              R$ {(product.estimated_price - product.estimated_production_cost).toFixed(2)} de lucro por unidade
                                             </p>
+                                          </div>
+                                        )}
+                                        
+                                        {product.projected_revenue && (
+                                          <div className="p-3 bg-green-500/5 border border-green-500/20 rounded-lg">
+                                            <div className="space-y-2">
+                                              <div className="flex items-center justify-between">
+                                                <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                                                  Receita Projetada
+                                                </span>
+                                                <span className="text-lg font-bold text-green-700 dark:text-green-400">
+                                                  R$ {product.projected_revenue.toFixed(2)}
+                                                </span>
+                                              </div>
+                                              {product.estimated_production_cost && (
+                                                <>
+                                                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                                    <span>Custo Total</span>
+                                                    <span>R$ {(product.estimated_production_cost * product.recommended_quantity).toFixed(2)}</span>
+                                                  </div>
+                                                  <div className="flex items-center justify-between text-sm font-semibold pt-1 border-t border-green-500/20">
+                                                    <span className="text-green-700 dark:text-green-400">Lucro Líquido</span>
+                                                    <span className="text-green-700 dark:text-green-400">
+                                                      R$ {(product.projected_revenue - (product.estimated_production_cost * product.recommended_quantity)).toFixed(2)}
+                                                    </span>
+                                                  </div>
+                                                </>
+                                              )}
+                                            </div>
                                           </div>
                                         )}
                                       </>

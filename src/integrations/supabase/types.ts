@@ -65,6 +65,7 @@ export type Database = {
           created_at: string | null
           demand_score: number | null
           estimated_price: number | null
+          estimated_production_cost: number | null
           fabric: string | null
           id: string
           image_url: string | null
@@ -85,6 +86,7 @@ export type Database = {
           created_at?: string | null
           demand_score?: number | null
           estimated_price?: number | null
+          estimated_production_cost?: number | null
           fabric?: string | null
           id?: string
           image_url?: string | null
@@ -105,6 +107,7 @@ export type Database = {
           created_at?: string | null
           demand_score?: number | null
           estimated_price?: number | null
+          estimated_production_cost?: number | null
           fabric?: string | null
           id?: string
           image_url?: string | null
