@@ -321,6 +321,191 @@ export default function ProductDetails() {
               </div>
             )}
 
+            {/* Trend Indicators & Temporal Data Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Trend Trajectory Card */}
+              <div className="bg-gradient-to-br from-emerald-500/10 to-transparent rounded-xl p-5 border border-emerald-500/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-emerald-500/10 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-emerald-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Trajetória da Tendência</p>
+                    <p className="text-xs text-muted-foreground">Status atual no mercado</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/50">
+                    <span className="text-sm text-muted-foreground">Status</span>
+                    <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      Em Alta
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/50">
+                    <span className="text-sm text-muted-foreground">Velocidade</span>
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-0.5">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className={`h-5 w-1 rounded-full ${
+                              i <= Math.ceil((product.demand_score || 0) / 25)
+                                ? 'bg-emerald-500'
+                                : 'bg-muted'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-sm font-semibold">
+                        {product.demand_score >= 75 ? 'Rápida' : product.demand_score >= 50 ? 'Moderada' : 'Lenta'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-background/60 rounded-lg border border-border/50">
+                    <span className="text-sm text-muted-foreground">Ciclo de Vida</span>
+                    <span className="text-sm font-semibold">
+                      {product.demand_score >= 70 ? 'Ascensão' : product.demand_score >= 40 ? 'Maturidade' : 'Declínio'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Temporal Data Card */}
+              <div className="bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl p-5 border border-blue-500/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Dados Temporais</p>
+                    <p className="text-xs text-muted-foreground">Análise de período e duração</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {product.created_at && (
+                    <div className="p-3 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Data da Análise</span>
+                      </div>
+                      <p className="text-sm font-semibold">
+                        {format(new Date(product.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(product.created_at), { 
+                          addSuffix: true,
+                          locale: ptBR 
+                        })}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="p-3 bg-background/60 rounded-lg border border-border/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Validade Estimada</span>
+                    </div>
+                    <p className="text-sm font-semibold">
+                      {product.demand_score >= 70 
+                        ? '6-12 meses' 
+                        : product.demand_score >= 50 
+                        ? '3-6 meses' 
+                        : '1-3 meses'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tendência {product.demand_score >= 60 ? 'de longa duração' : 'sazonal'}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-xs font-semibold text-blue-700">
+                        Melhor período: {
+                          new Date().getMonth() >= 2 && new Date().getMonth() <= 5
+                            ? 'Outono/Inverno'
+                            : 'Primavera/Verão'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Market Momentum Indicator */}
+            <div className="bg-gradient-to-br from-violet-500/10 to-transparent rounded-xl p-5 border border-violet-500/20">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 bg-violet-500/10 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-violet-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground mb-1">Momentum de Mercado</p>
+                  <p className="text-xs text-muted-foreground">Análise de força e penetração</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.demand_score >= 70 ? 'Alta' : product.demand_score >= 50 ? 'Média' : 'Baixa'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Força da Tendência</div>
+                  <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-violet-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${product.demand_score || 0}%` }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.sources?.length || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Fontes Validadas</div>
+                  <div className="mt-2 flex justify-center gap-1">
+                    {Array.from({ length: Math.min(product.sources?.length || 0, 5) }).map((_, i) => (
+                      <div key={i} className="h-2 w-2 rounded-full bg-violet-500" />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.target_audience_size 
+                      ? `${(product.target_audience_size / 1000000).toFixed(1)}M` 
+                      : 'N/A'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Público Potencial</div>
+                  <div className="mt-2">
+                    <Badge variant="outline" className="text-xs">
+                      {product.target_audience_size 
+                        ? product.target_audience_size >= 5000000 ? 'Muito Alto' : 
+                          product.target_audience_size >= 2000000 ? 'Alto' : 'Médio'
+                        : 'Não calculado'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-violet-500/5 rounded-lg border border-violet-500/20">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Interpretação:</strong> O momentum atual indica uma tendência com 
+                  {product.demand_score >= 70 ? ' forte penetração de mercado e alta adoção.' : 
+                   product.demand_score >= 50 ? ' penetração moderada e crescimento consistente.' : 
+                   ' penetração inicial ou em fase de teste de mercado.'}
+                </p>
+              </div>
+            </div>
+
             {/* Scoring Breakdown Section */}
             {product.insights?.scoring_breakdown && (
               <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
