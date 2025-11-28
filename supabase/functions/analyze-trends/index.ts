@@ -9,9 +9,6 @@ const corsHeaders = {
 interface AnalyzeRequest {
   collectionType: string;
   collectionName: string;
-  focusColors: boolean;
-  focusFabrics: boolean;
-  focusModels: boolean;
   analysisDepth: string;
 }
 
@@ -38,15 +35,12 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { collectionType, collectionName, focusColors, focusFabrics, focusModels, analysisDepth }: AnalyzeRequest = await req.json();
+    const { collectionType, collectionName, analysisDepth }: AnalyzeRequest = await req.json();
     
     console.log('Starting trend analysis:', { collectionType, collectionName, analysisDepth });
 
-    // Build analysis prompt based on user preferences
-    const focusAreas = [];
-    if (focusColors) focusAreas.push("cores e paletas de cores");
-    if (focusFabrics) focusAreas.push("tecidos e materiais");
-    if (focusModels) focusAreas.push("modelagens, cortes e silhuetas");
+    // Always analyze all focus areas
+    const focusAreas = ["cores e paletas de cores", "tecidos e materiais", "modelagens, cortes e silhuetas"];
 
     const depthInstructions = {
       quick: "Forneça uma análise rápida com os 3 principais insights.",
@@ -184,9 +178,9 @@ IMPORTANTE:
         user_id: user.id,
         collection_type: collectionType,
         collection_name: collectionName,
-        focus_colors: focusColors,
-        focus_fabrics: focusFabrics,
-        focus_models: focusModels,
+        focus_colors: true,
+        focus_fabrics: true,
+        focus_models: true,
         analysis_depth: analysisDepth,
         status: 'completed'
       })

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Palette, Shirt, Upload as UploadIcon, X, Ruler, ChevronRight, ChevronLeft } from "lucide-react";
+import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,9 +31,6 @@ export default function Trends() {
   const [collectionName, setCollectionName] = useState("");
   const [collectionType] = useState("casual"); // Default value
   const [products, setProducts] = useState<Product[]>([]);
-  const [focusColors, setFocusColors] = useState(true);
-  const [focusFabrics, setFocusFabrics] = useState(true);
-  const [focusModels, setFocusModels] = useState(true);
   const [analysisDepth, setAnalysisDepth] = useState("standard");
   const [dragActive, setDragActive] = useState(false);
 
@@ -107,7 +104,7 @@ export default function Trends() {
       collectionName,
       collectionType,
       products: products.length,
-      parameters: { focusColors, focusFabrics, focusModels, analysisDepth },
+      parameters: { analysisDepth },
     });
 
     try {
@@ -122,9 +119,6 @@ export default function Trends() {
         body: {
           collectionType,
           collectionName,
-          focusColors,
-          focusFabrics,
-          focusModels,
           analysisDepth,
         }
       });
@@ -414,68 +408,6 @@ export default function Trends() {
                 {currentStep === 2 && (
                   <div className="space-y-8">
                     <div className="space-y-4">
-                      <Label className="text-sm font-medium">Focos da Análise</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <button
-                          onClick={() => setFocusColors(!focusColors)}
-                          className={`relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all overflow-hidden ${
-                            focusColors
-                              ? "border-primary bg-gradient-to-br from-primary/10 to-transparent"
-                              : "border-border/50 hover:border-primary/30"
-                          }`}
-                        >
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                            focusColors ? 'bg-gradient-to-br from-pink-500 to-purple-500' : 'bg-muted'
-                          }`}>
-                            <Palette className={`h-7 w-7 ${focusColors ? 'text-white' : 'text-muted-foreground'}`} />
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-sm">Cores</p>
-                            <p className="text-xs text-muted-foreground mt-1">Tendências cromáticas</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => setFocusFabrics(!focusFabrics)}
-                          className={`relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all overflow-hidden ${
-                            focusFabrics
-                              ? "border-primary bg-gradient-to-br from-primary/10 to-transparent"
-                              : "border-border/50 hover:border-primary/30"
-                          }`}
-                        >
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                            focusFabrics ? 'bg-gradient-to-br from-blue-500 to-cyan-500' : 'bg-muted'
-                          }`}>
-                            <Shirt className={`h-7 w-7 ${focusFabrics ? 'text-white' : 'text-muted-foreground'}`} />
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-sm">Tecidos</p>
-                            <p className="text-xs text-muted-foreground mt-1">Materiais em alta</p>
-                          </div>
-                        </button>
-
-                        <button
-                          onClick={() => setFocusModels(!focusModels)}
-                          className={`relative flex flex-col items-center gap-3 p-6 rounded-xl border-2 transition-all overflow-hidden ${
-                            focusModels
-                              ? "border-primary bg-gradient-to-br from-primary/10 to-transparent"
-                              : "border-border/50 hover:border-primary/30"
-                          }`}
-                        >
-                          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                            focusModels ? 'bg-gradient-to-br from-green-500 to-emerald-500' : 'bg-muted'
-                          }`}>
-                            <Ruler className={`h-7 w-7 ${focusModels ? 'text-white' : 'text-muted-foreground'}`} />
-                          </div>
-                          <div className="text-center">
-                            <p className="font-semibold text-sm">Modelagens</p>
-                            <p className="text-xs text-muted-foreground mt-1">Cortes e silhuetas</p>
-                          </div>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
                       <Label className="text-sm font-medium">Profundidade da Análise</Label>
                       <RadioGroup value={analysisDepth} onValueChange={setAnalysisDepth}>
                         <div className="grid gap-3">
@@ -488,9 +420,9 @@ export default function Trends() {
                               <RadioGroupItem value={option.value} id={option.value} className="peer sr-only" />
                               <Label
                                 htmlFor={option.value}
-                                className="flex items-center gap-4 p-4 rounded-xl border-2 border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-gradient-to-r peer-data-[state=checked]:from-primary/10 peer-data-[state=checked]:to-transparent"
+                                className="flex items-center gap-4 p-4 rounded-xl border-2 border-border/50 cursor-pointer transition-all hover:border-primary/50 hover:bg-accent/50 peer-data-[state=checked]:border-primary/30 peer-data-[state=checked]:bg-primary/5"
                               >
-                                <div className="text-2xl">{option.icon}</div>
+                                <div className="text-2xl opacity-60">{option.icon}</div>
                                 <div className="flex-1">
                                   <p className="font-semibold">{option.label}</p>
                                   <p className="text-xs text-muted-foreground">{option.desc}</p>
