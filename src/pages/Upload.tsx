@@ -243,289 +243,270 @@ export default function Upload() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Hero Section */}
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-2"
+          className="text-center space-y-3 mb-16"
         >
-          <h1 className="text-4xl font-display font-bold text-foreground">Nova Análise</h1>
-          <p className="text-muted-foreground">Compare seus produtos com as tendências do mercado</p>
+          <h1 className="text-5xl font-display font-bold tracking-tight">Nova Análise</h1>
+          <p className="text-lg text-muted-foreground">Compare seus produtos com as tendências do mercado</p>
         </motion.div>
 
-        <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="upload">Upload</TabsTrigger>
-            <TabsTrigger value="results" disabled={files.length === 0}>
-              Resultados {files.length > 0 && `(${files.length})`}
-            </TabsTrigger>
-          </TabsList>
+        {/* Analysis Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-12"
+        >
+          <Label htmlFor="analysis-select" className="text-sm font-medium mb-3 block">
+            Selecione a análise de tendências
+          </Label>
+          <Select value={analysisId} onValueChange={setAnalysisId}>
+            <SelectTrigger id="analysis-select" className="h-14 text-base">
+              <SelectValue placeholder={loadingAnalyses ? "Carregando..." : "Escolher análise..."} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableAnalyses.map(analysis => (
+                <SelectItem key={analysis.id} value={analysis.id} className="text-base">
+                  {analysis.collection_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </motion.div>
 
-          <TabsContent value="upload" className="space-y-6 mt-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="analysis-select" className="text-base">Análise de Tendências</Label>
-                      <Select value={analysisId} onValueChange={setAnalysisId}>
-                        <SelectTrigger id="analysis-select" className="h-12">
-                          <SelectValue placeholder={loadingAnalyses ? "Carregando..." : "Selecione uma análise"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableAnalyses.map(analysis => (
-                            <SelectItem key={analysis.id} value={analysis.id}>
-                              {analysis.collection_name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+        {/* Upload Zone */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-12"
+        >
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              relative border-2 border-dashed rounded-2xl p-20 text-center transition-all duration-300
+              ${isDragging 
+                ? 'border-primary bg-primary/10 scale-[1.01] shadow-lg' 
+                : 'border-border/50 hover:border-primary/40 hover:bg-accent/30'
+              }
+            `}
+          >
+            <UploadIcon 
+              className={`h-20 w-20 mx-auto mb-6 transition-all duration-300 ${
+                isDragging ? 'text-primary scale-110' : 'text-muted-foreground'
+              }`} 
+            />
+            <div className="space-y-5">
+              <div className="space-y-2">
+                <h3 className="text-2xl font-semibold">Arraste suas imagens</h3>
+                <p className="text-muted-foreground">ou clique para selecionar</p>
+              </div>
+              <label htmlFor="file-input">
+                <Button size="lg" className="cursor-pointer h-12 px-8 text-base" asChild>
+                  <span>Escolher Arquivos</span>
+                </Button>
+              </label>
+              <input
+                id="file-input"
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileInput}
+                className="hidden"
+              />
+              <p className="text-xs text-muted-foreground">Formatos: PNG, JPG • Tamanho máximo: 10MB</p>
+            </div>
+          </div>
+        </motion.div>
 
-                    <div
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      className={`
-                        relative border-2 border-dashed rounded-xl p-16 text-center transition-all duration-300
-                        ${isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'border-border hover:border-primary/50 hover:bg-accent/50'}
-                      `}
-                    >
-                      <UploadIcon className={`h-16 w-16 mx-auto mb-4 transition-colors ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-lg font-semibold mb-1">Solte suas imagens aqui</h3>
-                          <p className="text-sm text-muted-foreground">ou clique no botão abaixo</p>
+        {/* Products List */}
+        {files.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="space-y-6"
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold">{files.length} {files.length === 1 ? 'Produto' : 'Produtos'}</h2>
+              <Button 
+                onClick={handleAnalyzeAll} 
+                disabled={!analysisId}
+                size="lg"
+                className="h-12 px-6"
+              >
+                <Sparkles className="mr-2 h-5 w-5" />
+                Analisar Todos
+              </Button>
+            </div>
+
+            <div className="space-y-3">
+              {files.map((file, index) => (
+                <motion.div
+                  key={file.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="group p-5 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-accent/20 transition-all"
+                >
+                  <div className="flex gap-5 items-start">
+                    {/* Image */}
+                    <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 border border-border">
+                      <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
+                      {file.analysis && (
+                        <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center backdrop-blur-[1px]">
+                          <CheckCircle2 className="h-8 w-8 text-green-600" />
                         </div>
-                        <label htmlFor="file-input">
-                          <Button size="lg" variant="default" asChild className="cursor-pointer">
-                            <span>Escolher Arquivos</span>
-                          </Button>
-                        </label>
-                        <input
-                          id="file-input"
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={handleFileInput}
-                          className="hidden"
-                        />
-                        <p className="text-xs text-muted-foreground">PNG, JPG até 10MB</p>
-                      </div>
+                      )}
                     </div>
+                    
+                    {/* Form */}
+                    <div className="flex-1 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor={`category-${file.id}`} className="text-xs mb-1.5 block">Categoria</Label>
+                          <Select value={file.category} onValueChange={(val) => updateFile(file.id, { category: val })}>
+                            <SelectTrigger id={`category-${file.id}`} className="h-10">
+                              <SelectValue placeholder="Selecionar" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="vestido">Vestido</SelectItem>
+                              <SelectItem value="calca">Calça</SelectItem>
+                              <SelectItem value="blusa">Blusa</SelectItem>
+                              <SelectItem value="jaqueta">Jaqueta</SelectItem>
+                              <SelectItem value="saia">Saia</SelectItem>
+                              <SelectItem value="short">Short</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    {files.length > 0 && (
-                      <div className="flex justify-end">
-                        <Button onClick={handleAnalyzeAll} disabled={!analysisId} size="lg">
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          Analisar Todos ({files.length})
+                        <div>
+                          <Label htmlFor={`sku-${file.id}`} className="text-xs mb-1.5 block">SKU</Label>
+                          <Input 
+                            id={`sku-${file.id}`} 
+                            placeholder="Ex: VER-001" 
+                            value={file.sku}
+                            onChange={(e) => updateFile(file.id, { sku: e.target.value })}
+                            className="h-10"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => analyzeProduct(file.id)}
+                          disabled={file.analyzing || !analysisId}
+                          size="sm"
+                          variant={file.analysis ? "secondary" : "default"}
+                          className="flex-1 sm:flex-none"
+                        >
+                          {file.analyzing ? "Analisando..." : file.analysis ? "✓ Analisado" : "Analisar"}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(file.id)}
+                        >
+                          <X className="h-4 w-4" />
                         </Button>
                       </div>
-                    )}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
-            {files.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="grid gap-4"
-              >
-                {files.map((file, index) => (
+        {/* Results Section */}
+        {rankedProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-16 pt-16 border-t border-border"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <Trophy className="h-7 w-7 text-primary" />
+              <h2 className="text-3xl font-semibold">Top Produtos</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {rankedProducts.slice(0, 5).map((file, index) => {
+                const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
+                return (
                   <motion.div
                     key={file.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: index * 0.08 }}
+                    className={`
+                      flex items-center gap-6 p-6 rounded-xl transition-all
+                      ${index === 0 
+                        ? 'border-2 border-primary/40 bg-primary/5 shadow-lg' 
+                        : 'border border-border/50 hover:border-primary/20 hover:bg-accent/30'
+                      }
+                    `}
                   >
-                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <div className="flex gap-4 items-center">
-                          <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
-                            <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
-                          </div>
-                          
-                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                            <div>
-                              <Label htmlFor={`category-${file.id}`} className="text-xs">Categoria</Label>
-                              <Select value={file.category} onValueChange={(val) => updateFile(file.id, { category: val })}>
-                                <SelectTrigger id={`category-${file.id}`} className="h-9">
-                                  <SelectValue placeholder="Selecionar" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="vestido">Vestido</SelectItem>
-                                  <SelectItem value="calca">Calça</SelectItem>
-                                  <SelectItem value="blusa">Blusa</SelectItem>
-                                  <SelectItem value="jaqueta">Jaqueta</SelectItem>
-                                  <SelectItem value="saia">Saia</SelectItem>
-                                  <SelectItem value="short">Short</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div>
-                              <Label htmlFor={`sku-${file.id}`} className="text-xs">SKU</Label>
-                              <Input 
-                                id={`sku-${file.id}`} 
-                                placeholder="Ex: VER-001" 
-                                value={file.sku}
-                                onChange={(e) => updateFile(file.id, { sku: e.target.value })}
-                                className="h-9"
-                              />
-                            </div>
-
-                            <div className="flex items-end gap-2">
-                              <Button
-                                onClick={() => analyzeProduct(file.id)}
-                                disabled={file.analyzing || !analysisId}
-                                size="sm"
-                                className="flex-1"
-                                variant={file.analysis ? "secondary" : "default"}
-                              >
-                                {file.analyzing ? "Analisando..." : file.analysis ? "✓" : "Analisar"}
-                              </Button>
-                            </div>
-                          </div>
-
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeFile(file.id)}
-                            className="flex-shrink-0"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="results" className="space-y-6 mt-8">
-            {rankedProducts.length > 0 ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-6"
-              >
-                <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <Trophy className="h-6 w-6 text-primary" />
-                      <div>
-                        <h2 className="text-xl font-semibold">Top 3 Produtos</h2>
-                        <p className="text-sm text-muted-foreground">Ordenados por potencial de mercado</p>
-                      </div>
+                    <div className={`
+                      text-4xl font-bold w-16 text-center
+                      ${index === 0 ? 'text-primary' : 'text-muted-foreground/40'}
+                    `}>
+                      #{index + 1}
                     </div>
                     
-                    <div className="grid gap-4">
-                      {rankedProducts.slice(0, 3).map((file, index) => {
-                        const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
-                        return (
-                          <motion.div
-                            key={file.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className={`
-                              relative flex items-center gap-4 p-4 rounded-xl border-2 transition-all
-                              ${index === 0 ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-border bg-card'}
-                            `}
-                          >
-                            <div className="text-3xl font-bold text-muted-foreground/30">
-                              #{index + 1}
-                            </div>
-                            
-                            <img 
-                              src={file.preview} 
-                              alt={file.name} 
-                              className="w-20 h-20 object-cover rounded-lg border-2 border-border"
-                            />
-                            
-                            <div className="flex-1 space-y-2">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <h3 className="font-semibold">{file.sku || file.name}</h3>
-                                  <p className="text-sm text-muted-foreground">{file.category}</p>
-                                </div>
-                                {getRankBadge(index + 1)}
-                              </div>
-                              
-                              <div className="flex items-center gap-4">
-                                <div className="flex-1">
-                                  <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-muted-foreground">Score</span>
-                                    <span className="font-semibold">{overallScore}%</span>
-                                  </div>
-                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
-                                      style={{ width: `${overallScore}%` }}
-                                    />
-                                  </div>
-                                </div>
-                                
-                                <Badge className={getRiskColor(file.analysis!.risk_level)}>
-                                  {getRiskIcon(file.analysis!.risk_level)}
-                                  <span className="ml-1 capitalize text-xs">{file.analysis!.risk_level}</span>
-                                </Badge>
-                              </div>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {rankedProducts.length > 3 && (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <h3 className="font-semibold mb-4">Outros Produtos</h3>
-                      <div className="grid gap-3">
-                        {rankedProducts.slice(3).map((file, index) => {
-                          const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
-                          return (
-                            <div
-                              key={file.id}
-                              className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-                            >
-                              <span className="text-sm text-muted-foreground font-medium w-8">#{index + 4}</span>
-                              <img src={file.preview} alt={file.name} className="w-12 h-12 object-cover rounded border border-border" />
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">{file.sku || file.name}</p>
-                                <p className="text-xs text-muted-foreground">{file.category}</p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm font-semibold">{overallScore}%</span>
-                                <Badge variant="outline" className={getRiskColor(file.analysis!.risk_level)}>
-                                  {getRiskIcon(file.analysis!.risk_level)}
-                                </Badge>
-                              </div>
-                            </div>
-                          );
-                        })}
+                    <img 
+                      src={file.preview} 
+                      alt={file.name} 
+                      className="w-24 h-24 object-cover rounded-lg border-2 border-border"
+                    />
+                    
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <h3 className="text-lg font-semibold">{file.sku || file.name}</h3>
+                        <p className="text-sm text-muted-foreground">{file.category}</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </motion.div>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Nenhum produto analisado ainda</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="flex-1 max-w-md">
+                          <div className="flex justify-between text-sm mb-1.5">
+                            <span className="text-muted-foreground">Score Geral</span>
+                            <span className="font-bold text-lg">{overallScore}%</span>
+                          </div>
+                          <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                            <motion.div 
+                              className={`h-full ${
+                                Number(overallScore) >= 80 
+                                  ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                                  : Number(overallScore) >= 60
+                                  ? 'bg-gradient-to-r from-primary to-primary/70'
+                                  : 'bg-gradient-to-r from-destructive to-destructive/70'
+                              }`}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${overallScore}%` }}
+                              transition={{ duration: 0.8, delay: index * 0.1 }}
+                            />
+                          </div>
+                        </div>
+                        
+                        <Badge variant="outline" className={`${getRiskColor(file.analysis!.risk_level)} text-sm py-1.5 px-3`}>
+                          {getRiskIcon(file.analysis!.risk_level)}
+                          <span className="ml-2 capitalize font-medium">{file.analysis!.risk_level}</span>
+                        </Badge>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
       </div>
     </DashboardLayout>
   );
