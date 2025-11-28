@@ -199,6 +199,26 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
       throw new Error('Failed to parse AI response');
     }
 
+    // Calculate recommended quantity based on demand_score
+    const demandScore = analysisData.demand_projection || 0;
+    let recommendedQuantity = 0;
+    
+    if (demandScore >= 80) {
+      // Alta demanda: 100-200 unidades
+      recommendedQuantity = Math.floor(100 + (demandScore - 80) * 5);
+    } else if (demandScore >= 60) {
+      // Boa demanda: 50-100 unidades
+      recommendedQuantity = Math.floor(50 + (demandScore - 60) * 2.5);
+    } else if (demandScore >= 40) {
+      // Demanda moderada: 30-60 unidades
+      recommendedQuantity = Math.floor(30 + (demandScore - 40) * 1.5);
+    } else {
+      // Baixa demanda: 10-30 unidades
+      recommendedQuantity = Math.floor(10 + demandScore * 0.5);
+    }
+
+    console.log(`Calculated recommended quantity: ${recommendedQuantity} for demand score: ${demandScore}`);
+
     // Save product analysis to database
     const { data: productData, error: productError } = await supabase
       .from('analysis_products')
@@ -213,7 +233,8 @@ IMPORTANTE: Use os dados REAIS das tendências fornecidas, não invente tendênc
         risk_level: analysisData.risk_level,
         insights: analysisData.insights || [],
         analysis_description: analysisData.analysis_description || null,
-        sources: analysisData.sources || []
+        sources: analysisData.sources || [],
+        recommended_quantity: recommendedQuantity
       })
       .select()
       .single();

@@ -68,6 +68,7 @@ export type Database = {
           id: string
           image_url: string | null
           insights: Json | null
+          recommended_quantity: number | null
           risk_level: string | null
           score_justification: string | null
           sku: string | null
@@ -84,6 +85,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           insights?: Json | null
+          recommended_quantity?: number | null
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
@@ -100,6 +102,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           insights?: Json | null
+          recommended_quantity?: number | null
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
