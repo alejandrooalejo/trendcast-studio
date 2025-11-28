@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SimilarProducts } from "@/components/SimilarProducts";
 
 export default function ProductDetails() {
   const navigate = useNavigate();
@@ -643,6 +644,15 @@ export default function ProductDetails() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Similar Products Section */}
+            {product.image_url && product.image_hash && (
+              <SimilarProducts 
+                productId={productId!}
+                imageUrl={product.image_url}
+                imageHash={product.image_hash}
+              />
             )}
           </div>
         </motion.div>
