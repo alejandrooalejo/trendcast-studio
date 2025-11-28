@@ -32,8 +32,8 @@ export function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center gap-4 px-6 w-full max-w-full">
+    <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center gap-4 px-6 w-full">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0" />
         
         <div className="flex-1 flex items-center gap-4 max-w-2xl min-w-0">

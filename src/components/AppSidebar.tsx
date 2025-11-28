@@ -72,15 +72,14 @@ export function AppSidebar() {
                             : 'bg-muted/50 hover:bg-muted hover:scale-105'
                           }
                         `}>
-                          <div className={`
-                            ${active 
-                              ? `bg-gradient-to-br ${item.gradient} bg-clip-text text-transparent` 
-                              : 'text-muted-foreground group-hover:text-foreground'
-                            }
-                            transition-all duration-300
-                          `}>
-                            <item.icon className="h-6 w-6" strokeWidth={active ? 2.5 : 2} />
-                          </div>
+                          <item.icon 
+                            className={`h-6 w-6 transition-all duration-300 ${
+                              active 
+                                ? 'text-primary' 
+                                : 'text-muted-foreground group-hover:text-foreground'
+                            }`}
+                            strokeWidth={active ? 2.5 : 2}
+                          />
                           
                           {/* Glow effect for active */}
                           {active && (
