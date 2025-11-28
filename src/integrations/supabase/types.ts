@@ -64,12 +64,15 @@ export type Database = {
           color: string | null
           created_at: string | null
           demand_score: number | null
+          embedding_id: string | null
           estimated_price: number | null
           estimated_production_cost: number | null
           fabric: string | null
           id: string
+          image_hash: string | null
           image_url: string | null
           insights: Json | null
+          normalized_image_url: string | null
           projected_revenue: number | null
           recommended_quantity: number | null
           risk_level: string | null
@@ -85,12 +88,15 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           demand_score?: number | null
+          embedding_id?: string | null
           estimated_price?: number | null
           estimated_production_cost?: number | null
           fabric?: string | null
           id?: string
+          image_hash?: string | null
           image_url?: string | null
           insights?: Json | null
+          normalized_image_url?: string | null
           projected_revenue?: number | null
           recommended_quantity?: number | null
           risk_level?: string | null
@@ -106,12 +112,15 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           demand_score?: number | null
+          embedding_id?: string | null
           estimated_price?: number | null
           estimated_production_cost?: number | null
           fabric?: string | null
           id?: string
+          image_hash?: string | null
           image_url?: string | null
           insights?: Json | null
+          normalized_image_url?: string | null
           projected_revenue?: number | null
           recommended_quantity?: number | null
           risk_level?: string | null
@@ -128,7 +137,44 @@ export type Database = {
             referencedRelation: "analyses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "analysis_products_embedding_id_fkey"
+            columns: ["embedding_id"]
+            isOneToOne: false
+            referencedRelation: "image_embeddings"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      image_embeddings: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          id: string
+          image_hash: string
+          metadata: Json | null
+          normalized_image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          image_hash: string
+          metadata?: Json | null
+          normalized_image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          image_hash?: string
+          metadata?: Json | null
+          normalized_image_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       market_insights: {
         Row: {
