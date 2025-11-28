@@ -59,6 +59,7 @@ export default function Upload() {
   const [analysisId, setAnalysisId] = useState<string>("");
   const [loadingAnalyses, setLoadingAnalyses] = useState(false);
   const [availableAnalyses, setAvailableAnalyses] = useState<Array<{ id: string; collection_name: string }>>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Load available analyses on mount
   useState(() => {
@@ -175,6 +176,7 @@ export default function Upload() {
     const file = files.find(f => f.id === fileId);
     if (!file) return;
 
+    setIsAnalyzing(true);
     updateFile(fileId, { analyzing: true, error: undefined });
 
     try {
@@ -222,6 +224,12 @@ export default function Upload() {
         analyzing: false,
         error: errorMessage
       });
+    } finally {
+      // Check if all files are done analyzing
+      const stillAnalyzing = files.some(f => f.analyzing && f.id !== fileId);
+      if (!stillAnalyzing) {
+        setIsAnalyzing(false);
+      }
     }
   };
 
@@ -283,9 +291,68 @@ export default function Upload() {
     return <Badge variant="secondary">#{rank}</Badge>;
   };
 
+  const analyzingCount = files.filter(f => f.analyzing).length;
+  const analyzedCount = files.filter(f => f.analysis).length;
+
   return (
     <DashboardLayout>
       <UploadOnboarding />
+      
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {isAnalyzing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border-2 border-primary/20 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl"
+            >
+              <div className="text-center space-y-6">
+                <div className="relative">
+                  <div className="w-20 h-20 mx-auto relative">
+                    <Loader2 className="w-20 h-20 text-primary animate-spin" />
+                    <Sparkles className="w-8 h-8 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-semibold">Analisando Produtos</h3>
+                  <p className="text-muted-foreground">
+                    Processando suas imagens com inteligência artificial
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Progresso</span>
+                    <span className="font-semibold">{analyzedCount} de {files.length}</span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary to-primary/80"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(analyzedCount / files.length) * 100}%` }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>{analyzingCount} {analyzingCount === 1 ? 'produto' : 'produtos'} em processamento...</span>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Hero Section */}
         <motion.div
