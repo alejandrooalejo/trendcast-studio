@@ -12,9 +12,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <div className="flex-1 flex flex-col w-full">
+        <div className="flex-1 flex flex-col min-w-0 w-full">
           <AppHeader />
-          <main className="flex-1 p-6 bg-muted/30 w-full">
+          <main className="flex-1 p-6 bg-muted/30">
             {children}
           </main>
         </div>
