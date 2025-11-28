@@ -266,11 +266,6 @@ export default function ProductDetails() {
                     transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
                   />
                 </div>
-                {product.score_justification && (
-                  <div className="bg-muted/20 rounded-lg p-3 border border-border/50">
-                    <p className="text-xs text-muted-foreground">{product.score_justification}</p>
-                  </div>
-                )}
               </div>
             )}
 
