@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.preprocess-image]
 verify_jwt = true
+
+[functions.generate-embeddings]
+verify_jwt = true
+
+[functions.search-similar]
+verify_jwt = true
