@@ -1,17 +1,16 @@
 import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload as UploadIcon, X, Sparkles, TrendingUp, AlertTriangle, CheckCircle2, Award, Trophy } from "lucide-react";
+import { Upload as UploadIcon, X, Sparkles, AlertTriangle, CheckCircle2, Trophy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface UploadedFile {
   id: string;
@@ -213,7 +212,7 @@ export default function Upload() {
   const getRiskIcon = (level: string) => {
     switch (level) {
       case 'low': return <CheckCircle2 className="h-4 w-4" />;
-      case 'medium': return <TrendingUp className="h-4 w-4" />;
+      case 'medium': return <Sparkles className="h-4 w-4" />;
       case 'high': return <AlertTriangle className="h-4 w-4" />;
       default: return null;
     }
@@ -237,197 +236,126 @@ export default function Upload() {
   const getRankBadge = (rank: number | null) => {
     if (!rank) return null;
     if (rank === 1) return <Badge className="bg-yellow-500 text-white"><Trophy className="h-3 w-3 mr-1" />Melhor Produto</Badge>;
-    if (rank === 2) return <Badge className="bg-gray-400 text-white"><Award className="h-3 w-3 mr-1" />2º Lugar</Badge>;
-    if (rank === 3) return <Badge className="bg-amber-600 text-white"><Award className="h-3 w-3 mr-1" />3º Lugar</Badge>;
+    if (rank === 2) return <Badge className="bg-gray-400 text-white">2º Lugar</Badge>;
+    if (rank === 3) return <Badge className="bg-amber-600 text-white">3º Lugar</Badge>;
     return <Badge variant="secondary">#{rank}</Badge>;
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-display font-semibold text-foreground">Upload de Produtos</h1>
-          <p className="text-muted-foreground mt-1">Envie fotos dos produtos para comparar com tendências</p>
-        </div>
-
+      <div className="max-w-5xl mx-auto space-y-8">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          className="text-center space-y-2"
         >
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-display">Selecionar Análise de Tendências</CardTitle>
-              <CardDescription>Escolha uma análise para comparar com seus produtos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Select value={analysisId} onValueChange={setAnalysisId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={loadingAnalyses ? "Carregando..." : "Selecione uma análise"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableAnalyses.map(analysis => (
-                    <SelectItem key={analysis.id} value={analysis.id}>
-                      {analysis.collection_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
+          <h1 className="text-4xl font-display font-bold text-foreground">Nova Análise</h1>
+          <p className="text-muted-foreground">Compare seus produtos com as tendências do mercado</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-display">Adicionar Produtos</CardTitle>
-              <CardDescription>Arraste e solte as fotos ou clique para selecionar</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`
-                  border-2 border-dashed rounded-lg p-12 text-center transition-colors
-                  ${isDragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'}
-                `}
-              >
-                <UploadIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="font-semibold mb-2">Arraste suas imagens aqui</h3>
-                <p className="text-sm text-muted-foreground mb-4">ou</p>
-                <label htmlFor="file-input">
-                  <Button variant="outline" asChild>
-                    <span>Selecionar Arquivos</span>
-                  </Button>
-                </label>
-                <input
-                  id="file-input"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                />
-                <p className="text-xs text-muted-foreground mt-4">PNG, JPG até 10MB</p>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <Tabs defaultValue="upload" className="w-full">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="upload">Upload</TabsTrigger>
+            <TabsTrigger value="results" disabled={files.length === 0}>
+              Resultados {files.length > 0 && `(${files.length})`}
+            </TabsTrigger>
+          </TabsList>
 
-        <AnimatePresence>
-          {rankedProducts.length > 0 && (
+          <TabsContent value="upload" className="space-y-6 mt-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="mb-6"
+              transition={{ duration: 0.3 }}
             >
-              <Card className="border-primary/50 bg-primary/5">
-                <CardHeader>
-                  <CardTitle className="font-display flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-yellow-500" />
-                    Ranking de Produtos
-                  </CardTitle>
-                  <CardDescription>Produtos ordenados por potencial de mercado</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {rankedProducts.slice(0, 3).map((file, index) => {
-                      const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
-                      return (
-                        <motion.div
-                          key={file.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: index * 0.1 }}
-                          className={`relative border rounded-lg p-4 ${index === 0 ? 'border-yellow-500 bg-yellow-50/50' : 'border-border'}`}
-                        >
-                          <div className="absolute top-2 right-2">
-                            {getRankBadge(index + 1)}
-                          </div>
-                          <div className="flex gap-3 mb-3">
-                            <img src={file.preview} alt={file.name} className="w-16 h-16 object-cover rounded" />
-                            <div className="flex-1">
-                              <p className="font-semibold text-sm">{file.sku || file.name}</p>
-                              <p className="text-xs text-muted-foreground">{file.category}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <div>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="text-muted-foreground">Score Geral</span>
-                                <span className="font-semibold">{overallScore}%</span>
-                              </div>
-                              <Progress value={Number(overallScore)} className="h-2" />
-                            </div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Risco:</span>
-                              <Badge className={`${getRiskColor(file.analysis!.risk_level)} text-xs py-0`}>
-                                {file.analysis!.risk_level}
-                              </Badge>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+              <Card className="border-2">
+                <CardContent className="pt-6">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="analysis-select" className="text-base">Análise de Tendências</Label>
+                      <Select value={analysisId} onValueChange={setAnalysisId}>
+                        <SelectTrigger id="analysis-select" className="h-12">
+                          <SelectValue placeholder={loadingAnalyses ? "Carregando..." : "Selecione uma análise"} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableAnalyses.map(analysis => (
+                            <SelectItem key={analysis.id} value={analysis.id}>
+                              {analysis.collection_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      className={`
+                        relative border-2 border-dashed rounded-xl p-16 text-center transition-all duration-300
+                        ${isDragging ? 'border-primary bg-primary/10 scale-[1.02]' : 'border-border hover:border-primary/50 hover:bg-accent/50'}
+                      `}
+                    >
+                      <UploadIcon className={`h-16 w-16 mx-auto mb-4 transition-colors ${isDragging ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-1">Solte suas imagens aqui</h3>
+                          <p className="text-sm text-muted-foreground">ou clique no botão abaixo</p>
+                        </div>
+                        <label htmlFor="file-input">
+                          <Button size="lg" variant="default" asChild className="cursor-pointer">
+                            <span>Escolher Arquivos</span>
+                          </Button>
+                        </label>
+                        <input
+                          id="file-input"
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleFileInput}
+                          className="hidden"
+                        />
+                        <p className="text-xs text-muted-foreground">PNG, JPG até 10MB</p>
+                      </div>
+                    </div>
+
+                    {files.length > 0 && (
+                      <div className="flex justify-end">
+                        <Button onClick={handleAnalyzeAll} disabled={!analysisId} size="lg">
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Analisar Todos ({files.length})
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
-          )}
-        </AnimatePresence>
 
-        <AnimatePresence>
-          {files.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-            >
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="font-display">Produtos Adicionados ({files.length})</CardTitle>
-                      <CardDescription>Preencha os detalhes e analise cada produto</CardDescription>
-                    </div>
-                    <Button onClick={handleAnalyzeAll} disabled={!analysisId}>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Analisar Todos
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-6">
-                    {files.map((file, index) => (
-                      <motion.div
-                        key={file.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className="border border-border rounded-lg overflow-hidden"
-                      >
-                        <div className="flex gap-6 p-4">
-                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+            {files.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="grid gap-4"
+              >
+                {files.map((file, index) => (
+                  <motion.div
+                    key={file.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex gap-4 items-center">
+                          <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 border-border">
                             <img src={file.preview} alt={file.name} className="w-full h-full object-cover" />
-                            {file.analysis && getProductRank(file.id) && (
-                              <div className="absolute top-1 right-1">
-                                {getRankBadge(getProductRank(file.id))}
-                              </div>
-                            )}
                           </div>
                           
-                          <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div>
-                              <Label htmlFor={`category-${file.id}`}>Categoria</Label>
+                              <Label htmlFor={`category-${file.id}`} className="text-xs">Categoria</Label>
                               <Select value={file.category} onValueChange={(val) => updateFile(file.id, { category: val })}>
-                                <SelectTrigger id={`category-${file.id}`}>
+                                <SelectTrigger id={`category-${file.id}`} className="h-9">
                                   <SelectValue placeholder="Selecionar" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -442,23 +370,25 @@ export default function Upload() {
                             </div>
 
                             <div>
-                              <Label htmlFor={`sku-${file.id}`}>SKU</Label>
+                              <Label htmlFor={`sku-${file.id}`} className="text-xs">SKU</Label>
                               <Input 
                                 id={`sku-${file.id}`} 
                                 placeholder="Ex: VER-001" 
                                 value={file.sku}
                                 onChange={(e) => updateFile(file.id, { sku: e.target.value })}
+                                className="h-9"
                               />
                             </div>
 
-                            <div className="flex items-end">
+                            <div className="flex items-end gap-2">
                               <Button
                                 onClick={() => analyzeProduct(file.id)}
                                 disabled={file.analyzing || !analysisId}
-                                className="w-full"
+                                size="sm"
+                                className="flex-1"
                                 variant={file.analysis ? "secondary" : "default"}
                               >
-                                {file.analyzing ? "Analisando..." : file.analysis ? "Re-analisar" : "Analisar"}
+                                {file.analyzing ? "Analisando..." : file.analysis ? "✓" : "Analisar"}
                               </Button>
                             </div>
                           </div>
@@ -467,130 +397,135 @@ export default function Upload() {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeFile(file.id)}
-                            className="self-start"
+                            className="flex-shrink-0"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </TabsContent>
 
-                        {file.analysis && (
-                          <div className="border-t border-border bg-muted/30 p-6 space-y-4">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="font-semibold text-lg">Resultados da Análise</h3>
-                              {getProductRank(file.id) && getProductRank(file.id)! <= 3 && (
-                                <Badge className="bg-green-500 text-white">
-                                  <TrendingUp className="h-3 w-3 mr-1" />
-                                  Alto Potencial
-                                </Badge>
-                              )}
+          <TabsContent value="results" className="space-y-6 mt-8">
+            {rankedProducts.length > 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-3 mb-6">
+                      <Trophy className="h-6 w-6 text-primary" />
+                      <div>
+                        <h2 className="text-xl font-semibold">Top 3 Produtos</h2>
+                        <p className="text-sm text-muted-foreground">Ordenados por potencial de mercado</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid gap-4">
+                      {rankedProducts.slice(0, 3).map((file, index) => {
+                        const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
+                        return (
+                          <motion.div
+                            key={file.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className={`
+                              relative flex items-center gap-4 p-4 rounded-xl border-2 transition-all
+                              ${index === 0 ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-border bg-card'}
+                            `}
+                          >
+                            <div className="text-3xl font-bold text-muted-foreground/30">
+                              #{index + 1}
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">Alinhamento com Tendências</p>
-                                <div className="flex items-center gap-2">
-                                  <Progress value={file.analysis.alignment_score} className="flex-1" />
-                                  <span className="text-sm font-semibold">{file.analysis.alignment_score}%</span>
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">Projeção de Demanda</p>
-                                <div className="flex items-center gap-2">
-                                  <Progress value={file.analysis.demand_projection} className="flex-1" />
-                                  <span className="text-sm font-semibold">{file.analysis.demand_projection}%</span>
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">Nível de Risco</p>
-                                <Badge className={getRiskColor(file.analysis.risk_level)}>
-                                  {getRiskIcon(file.analysis.risk_level)}
-                                  <span className="ml-1 capitalize">{file.analysis.risk_level}</span>
-                                </Badge>
-                              </div>
-                              <div>
-                                <p className="text-xs text-muted-foreground mb-1">Detecções</p>
-                                <p className="text-sm">{file.analysis.detected_color}</p>
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            <div>
-                              <h4 className="font-semibold mb-3">Comparação com Tendências</h4>
-                              <div className="grid grid-cols-3 gap-4">
+                            
+                            <img 
+                              src={file.preview} 
+                              alt={file.name} 
+                              className="w-20 h-20 object-cover rounded-lg border-2 border-border"
+                            />
+                            
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-start justify-between">
                                 <div>
-                                  <p className="text-xs text-muted-foreground">Cor</p>
-                                  <Progress value={file.analysis.comparison.color_match} className="mt-1" />
-                                  <p className="text-xs mt-1">{file.analysis.comparison.color_match}%</p>
+                                  <h3 className="font-semibold">{file.sku || file.name}</h3>
+                                  <p className="text-sm text-muted-foreground">{file.category}</p>
                                 </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Tecido</p>
-                                  <Progress value={file.analysis.comparison.fabric_match} className="mt-1" />
-                                  <p className="text-xs mt-1">{file.analysis.comparison.fabric_match}%</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Estilo</p>
-                                  <Progress value={file.analysis.comparison.style_match} className="mt-1" />
-                                  <p className="text-xs mt-1">{file.analysis.comparison.style_match}%</p>
-                                </div>
+                                {getRankBadge(index + 1)}
                               </div>
-                            </div>
-
-                            {file.analysis.insights.length > 0 && (
-                              <>
-                                <Separator />
-                                <div>
-                                  <h4 className="font-semibold mb-3">Insights</h4>
-                                  <div className="space-y-2">
-                                    {file.analysis.insights.map((insight, idx) => (
-                                      <div key={idx} className="flex gap-2 text-sm">
-                                        <Badge variant="outline" className="capitalize">{insight.type}</Badge>
-                                        <div>
-                                          <p className="font-medium">{insight.title}</p>
-                                          <p className="text-muted-foreground text-xs">{insight.description}</p>
-                                        </div>
-                                      </div>
-                                    ))}
+                              
+                              <div className="flex items-center gap-4">
+                                <div className="flex-1">
+                                  <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-muted-foreground">Score</span>
+                                    <span className="font-semibold">{overallScore}%</span>
+                                  </div>
+                                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-500"
+                                      style={{ width: `${overallScore}%` }}
+                                    />
                                   </div>
                                 </div>
-                              </>
-                            )}
+                                
+                                <Badge className={getRiskColor(file.analysis!.risk_level)}>
+                                  {getRiskIcon(file.analysis!.risk_level)}
+                                  <span className="ml-1 capitalize text-xs">{file.analysis!.risk_level}</span>
+                                </Badge>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                            {file.analysis.improvements.length > 0 && (
-                              <>
-                                <Separator />
-                                <div>
-                                  <h4 className="font-semibold mb-3">Sugestões de Melhoria</h4>
-                                  <div className="space-y-3">
-                                    {file.analysis.improvements.map((improvement, idx) => (
-                                      <div key={idx} className="border border-border rounded-lg p-3">
-                                        <div className="flex items-start justify-between mb-2">
-                                          <Badge variant="secondary" className="capitalize">{improvement.aspect}</Badge>
-                                          <span className="text-xs text-muted-foreground">Alinhamento: {improvement.trend_alignment}%</span>
-                                        </div>
-                                        <p className="text-sm mb-1">
-                                          <span className="text-muted-foreground">Atual:</span> {improvement.current}
-                                        </p>
-                                        <p className="text-sm mb-1">
-                                          <span className="text-muted-foreground">Sugerido:</span> {improvement.suggested}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">{improvement.reason}</p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {rankedProducts.length > 3 && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <h3 className="font-semibold mb-4">Outros Produtos</h3>
+                      <div className="grid gap-3">
+                        {rankedProducts.slice(3).map((file, index) => {
+                          const overallScore = ((file.analysis!.demand_projection + file.analysis!.alignment_score) / 2).toFixed(0);
+                          return (
+                            <div
+                              key={file.id}
+                              className="flex items-center gap-4 p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                            >
+                              <span className="text-sm text-muted-foreground font-medium w-8">#{index + 4}</span>
+                              <img src={file.preview} alt={file.name} className="w-12 h-12 object-cover rounded border border-border" />
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{file.sku || file.name}</p>
+                                <p className="text-xs text-muted-foreground">{file.category}</p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-semibold">{overallScore}%</span>
+                                <Badge variant="outline" className={getRiskColor(file.analysis!.risk_level)}>
+                                  {getRiskIcon(file.analysis!.risk_level)}
+                                </Badge>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </motion.div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Nenhum produto analisado ainda</p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
