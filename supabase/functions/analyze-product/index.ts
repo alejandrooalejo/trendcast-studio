@@ -257,10 +257,11 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
       throw new Error('Failed to parse AI response');
     }
 
-    // Extract and validate required fields
-    const demandScore = analysisData.demand_projection || 0;
-    const estimatedPrice = analysisData.estimated_market_price || 0;
-    const productionCost = analysisData.estimated_production_cost || 0;
+    // Extract and validate required fields, normalizing types
+    const rawDemandScore = Number(analysisData.demand_projection ?? 0);
+    const demandScore = Number.isFinite(rawDemandScore) ? Math.round(rawDemandScore) : 0;
+    const estimatedPrice = Number(analysisData.estimated_market_price ?? 0) || 0;
+    const productionCost = Number(analysisData.estimated_production_cost ?? 0) || 0;
     
     console.log('Extracted values:', {
       demandScore,
