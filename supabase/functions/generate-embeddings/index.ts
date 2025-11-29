@@ -78,23 +78,7 @@ serve(async (req) => {
       );
     }
 
-    // Download the image
-    console.log("Downloading image from:", imageUrl);
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to download image: ${imageResponse.statusText}`);
-    }
-
-    const imageBlob = await imageResponse.blob();
-    console.log("Image downloaded, size:", imageBlob.size);
-
-    // Convert to base64
-    const arrayBuffer = await imageBlob.arrayBuffer();
-    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
-    const imageData = `data:${imageBlob.type};base64,${base64}`;
-
-    // Instead of calling external APIs (which can be brittle in this environment),
-    // generate a deterministic pseudo-random embedding from the image hash.
+    // Generate deterministic embedding from image hash (no external calls)
     const embedding = generateDeterministicEmbedding(imageHash);
 
     console.log("Embedding generated, length:", embedding.length);
