@@ -454,6 +454,28 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
 
     console.log('Product analysis saved:', productData.id);
 
+    // Generate embeddings automatically after product analysis
+    try {
+      console.log('Generating embeddings for product:', productData.id);
+      const { error: embeddingError } = await supabase.functions.invoke('generate-embeddings', {
+        body: { 
+          imageUrl: imageBase64,
+          imageHash: hashHex,
+          productId: productData.id
+        }
+      });
+
+      if (embeddingError) {
+        console.error('Error generating embeddings:', embeddingError);
+        // Don't fail the entire analysis if embeddings fail
+      } else {
+        console.log('Embeddings generated successfully');
+      }
+    } catch (embeddingError) {
+      console.error('Failed to generate embeddings:', embeddingError);
+      // Continue without embeddings
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
