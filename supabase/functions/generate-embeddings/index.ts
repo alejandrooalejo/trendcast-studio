@@ -51,10 +51,15 @@ serve(async (req) => {
           .eq("id", productId);
       }
 
+      // Parse embedding if it's a string, otherwise use as-is
+      const embeddingArray = typeof existing.embedding === 'string' 
+        ? JSON.parse(existing.embedding)
+        : existing.embedding;
+
       return new Response(
         JSON.stringify({ 
           embeddingId: existing.id, 
-          embedding: existing.embedding,
+          embedding: embeddingArray,
           cached: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -80,17 +85,22 @@ serve(async (req) => {
     const hf = new HfInference(hfToken);
     
     console.log("Generating FashionCLIP embedding...");
-    const embedding = await hf.featureExtraction({
+    const embeddingResult = await hf.featureExtraction({
       model: "patrickjohncyh/fashion-clip",
       inputs: imageData,
     });
+
+    // Convert to plain array to avoid serialization issues
+    const embedding = Array.isArray(embeddingResult) 
+      ? embeddingResult 
+      : Array.from(embeddingResult);
 
     console.log("Embedding generated, length:", embedding.length);
 
     // Store or update embedding
     const embeddingData = {
       image_hash: imageHash,
-      embedding: embedding,
+      embedding: `[${embedding.join(',')}]`,
       normalized_image_url: imageUrl,
       metadata: {
         model: "fashion-clip",
@@ -137,7 +147,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         embeddingId, 
-        embedding,
+        embedding: Array.from(embedding),
         cached: false 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
