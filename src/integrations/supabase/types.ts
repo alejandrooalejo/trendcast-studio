@@ -149,6 +149,7 @@ export type Database = {
       image_embeddings: {
         Row: {
           created_at: string
+          embedding: string | null
           id: string
           image_hash: string
           metadata: Json | null
@@ -157,6 +158,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          embedding?: string | null
           id?: string
           image_hash: string
           metadata?: Json | null
@@ -165,6 +167,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          embedding?: string | null
           id?: string
           image_hash?: string
           metadata?: Json | null
