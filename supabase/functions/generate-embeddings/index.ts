@@ -43,7 +43,6 @@ serve(async (req) => {
     if (existing && existing.embedding) {
       console.log("Embedding already exists:", existing.id);
       
-      // Update product with embedding_id if provided
       if (productId) {
         await supabase
           .from("analysis_products")
@@ -51,10 +50,10 @@ serve(async (req) => {
           .eq("id", productId);
       }
 
+      // We don't need to return the full embedding to the client
       return new Response(
         JSON.stringify({ 
-          embeddingId: existing.id, 
-          embedding: existing.embedding,
+          embeddingId: existing.id,
           cached: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -85,10 +84,10 @@ serve(async (req) => {
       inputs: imageData,
     });
 
-    // Convert to plain array to avoid serialization issues
-    const embedding = Array.isArray(embeddingResult) 
-      ? embeddingResult 
-      : Array.from(embeddingResult);
+    // Convert to a flat number[] (FashionCLIP returns [[...]]). Take first row.
+    const embedding = Array.isArray(embeddingResult[0])
+      ? (embeddingResult[0] as number[])
+      : (embeddingResult as number[]);
 
     console.log("Embedding generated, length:", embedding.length);
 
@@ -141,8 +140,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        embeddingId, 
-        embedding,
+        embeddingId,
         cached: false 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
