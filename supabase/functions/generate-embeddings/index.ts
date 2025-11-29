@@ -54,7 +54,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           embeddingId: existing.id, 
-          embedding: JSON.parse(existing.embedding),
+          embedding: existing.embedding,
           cached: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -90,7 +90,7 @@ serve(async (req) => {
     // Store or update embedding
     const embeddingData = {
       image_hash: imageHash,
-      embedding: JSON.stringify(embedding),
+      embedding: embedding,
       normalized_image_url: imageUrl,
       metadata: {
         model: "fashion-clip",
