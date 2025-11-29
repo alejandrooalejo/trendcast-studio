@@ -51,15 +51,10 @@ serve(async (req) => {
           .eq("id", productId);
       }
 
-      // Parse embedding if it's a string, otherwise use as-is
-      const embeddingArray = typeof existing.embedding === 'string' 
-        ? JSON.parse(existing.embedding)
-        : existing.embedding;
-
       return new Response(
         JSON.stringify({ 
           embeddingId: existing.id, 
-          embedding: embeddingArray,
+          embedding: existing.embedding,
           cached: true 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -97,10 +92,10 @@ serve(async (req) => {
 
     console.log("Embedding generated, length:", embedding.length);
 
-    // Store or update embedding
+    // Store or update embedding - PostgreSQL vector type accepts arrays directly
     const embeddingData = {
       image_hash: imageHash,
-      embedding: `[${embedding.join(',')}]`,
+      embedding: embedding,
       normalized_image_url: imageUrl,
       metadata: {
         model: "fashion-clip",
@@ -147,7 +142,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         embeddingId, 
-        embedding: Array.from(embedding),
+        embedding,
         cached: false 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
