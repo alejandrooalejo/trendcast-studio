@@ -67,19 +67,22 @@ serve(async (req) => {
     if (productError) throw productError;
 
     if (!sourceProduct?.image_embeddings?.embedding) {
+      // Return 200 with an error message so the client can handle gracefully
       return new Response(
         JSON.stringify({ 
           error: "Product has no embedding. Please generate embeddings first." 
         }),
         { 
-          status: 400, 
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" } 
         }
       );
     }
 
-    const sourceEmbedding = JSON.parse(sourceProduct.image_embeddings.embedding);
-    console.log("Source embedding length:", sourceEmbedding.length);
+    const rawSourceEmbedding = sourceProduct.image_embeddings.embedding;
+    const sourceEmbedding: number[] = Array.isArray(rawSourceEmbedding)
+      ? rawSourceEmbedding
+      : JSON.parse(rawSourceEmbedding);
 
     // Get all products with embeddings (excluding the source)
     const { data: allProducts, error: allError } = await supabase
@@ -102,7 +105,10 @@ serve(async (req) => {
     const similarities = allProducts
       ?.filter(p => p.image_embeddings?.embedding)
       .map(product => {
-        const embedding = JSON.parse(product.image_embeddings.embedding);
+        const rawEmbedding = product.image_embeddings.embedding;
+        const embedding: number[] = Array.isArray(rawEmbedding)
+          ? rawEmbedding
+          : JSON.parse(rawEmbedding);
         const similarity = cosineSimilarity(sourceEmbedding, embedding);
         
         return {
