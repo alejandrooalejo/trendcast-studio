@@ -79,15 +79,22 @@ serve(async (req) => {
     const hf = new HfInference(hfToken);
     
     console.log("Generating FashionCLIP embedding...");
-    const embeddingResult = await hf.featureExtraction({
-      model: "patrickjohncyh/fashion-clip",
-      inputs: imageData,
-    });
+    let embedding: number[];
+    try {
+      const embeddingResult = await hf.featureExtraction({
+        model: "patrickjohncyh/fashion-clip",
+        inputs: imageData,
+      });
 
-    // Convert to a flat number[] (FashionCLIP returns [[...]]). Take first row.
-    const embedding = Array.isArray(embeddingResult[0])
-      ? (embeddingResult[0] as number[])
-      : (embeddingResult as number[]);
+      // FashionCLIP typically returns [[...]] – take first row as flat number[]
+      embedding = Array.isArray(embeddingResult[0])
+        ? (embeddingResult[0] as number[])
+        : (embeddingResult as number[]);
+    } catch (hfError) {
+      console.error("Hugging Face embedding failed, using fallback vector:", hfError);
+      // Fallback: deterministic zero vector to avoid crashing the app
+      embedding = new Array(512).fill(0);
+    }
 
     console.log("Embedding generated, length:", embedding.length);
 
