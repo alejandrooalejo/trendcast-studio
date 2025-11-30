@@ -228,6 +228,21 @@ export default function Trends() {
         const successfulAnalyses = results.filter(r => r !== null).length;
         
         console.log(`${successfulAnalyses}/${products.length} products analyzed successfully`);
+
+        // Se nenhuma imagem for válida, remover análise e encerrar fluxo
+        if (successfulAnalyses === 0) {
+          console.log("Nenhum produto válido, removendo análise:", analysisId);
+          await supabase.from('analyses').delete().eq('id', analysisId);
+
+          toast({
+            title: "Nenhum produto de moda identificado",
+            description: "As imagens enviadas não parecem ser de peças de roupa. Nenhum registro foi criado.",
+            variant: "destructive",
+          });
+
+          setLoading(false);
+          return;
+        }
       }
 
       toast({
