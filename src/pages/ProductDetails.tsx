@@ -36,12 +36,8 @@ export default function ProductDetails() {
 
       if (error) throw error;
       
+      // Se não encontrar o produto, apenas redireciona silenciosamente
       if (!data) {
-        toast({
-          title: "ID da análise não encontrado",
-          description: "Redirecionando para resultados...",
-          variant: "destructive",
-        });
         setTimeout(() => navigate("/results"), 2000);
         return;
       }
