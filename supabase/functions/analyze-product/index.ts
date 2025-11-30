@@ -347,7 +347,13 @@ REGRAS IMPORTANTES:
       target_audience_size: targetAudienceSize,
       estimated_price: estimatedPrice,
       projected_revenue: projectedRevenue,
-      estimated_production_cost: productionCost
+      estimated_production_cost: productionCost,
+      trend_status: analysisData.trend_status || null,
+      trend_level: analysisData.trend_level || null,
+      reason: analysisData.reason || null,
+      related_trend: analysisData.related_trend || null,
+      current_usage: analysisData.current_usage || null,
+      recommendation: analysisData.recommendation || null
     };
 
     console.log('Attempting to insert product with data:', {
