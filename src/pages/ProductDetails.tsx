@@ -35,6 +35,17 @@ export default function ProductDetails() {
         .maybeSingle();
 
       if (error) throw error;
+      
+      if (!data) {
+        toast({
+          title: "ID da análise não encontrado",
+          description: "Redirecionando para resultados...",
+          variant: "destructive",
+        });
+        setTimeout(() => navigate("/results"), 2000);
+        return;
+      }
+      
       setProduct(data);
     } catch (error) {
       console.error("Error fetching product details:", error);
@@ -43,6 +54,7 @@ export default function ProductDetails() {
         description: "Não foi possível carregar os detalhes do produto",
         variant: "destructive",
       });
+      setTimeout(() => navigate("/results"), 2000);
     } finally {
       setLoading(false);
     }

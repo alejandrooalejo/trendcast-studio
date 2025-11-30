@@ -17,13 +17,20 @@ export default function Results() {
   const { toast } = useToast();
   const [analyses, setAnalyses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const ITEMS_PER_PAGE = 15;
 
   useEffect(() => {
     fetchAnalyses();
   }, []);
 
-  const fetchAnalyses = async () => {
+  const fetchAnalyses = async (loadMore = false) => {
     try {
+      if (loadMore) {
+        setLoadingMore(true);
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -36,16 +43,29 @@ export default function Results() {
         return;
       }
 
+      const offset = loadMore ? analyses.length : 0;
+
       const { data: analysesData, error: analysesError } = await supabase
         .from("analyses")
         .select("id, collection_name, collection_type, created_at, status, user_id")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(offset, offset + ITEMS_PER_PAGE - 1);
 
       if (analysesError) throw analysesError;
 
-      // Otimização: buscar TODOS os produtos de uma vez em vez de um por um
+      // Verificar se há mais resultados
+      setHasMore((analysesData || []).length === ITEMS_PER_PAGE);
+
+      // Otimização: buscar produtos apenas das análises carregadas
       const analysisIds = (analysesData || []).map(a => a.id);
+      
+      if (analysisIds.length === 0) {
+        if (!loadMore) {
+          setAnalyses([]);
+        }
+        return;
+      }
       
       const { data: allProducts, error: productsError } = await supabase
         .from("analysis_products")
@@ -69,7 +89,11 @@ export default function Results() {
         products: productsByAnalysis[analysis.id] || [],
       }));
 
-      setAnalyses(analysesWithProducts);
+      if (loadMore) {
+        setAnalyses([...analyses, ...analysesWithProducts]);
+      } else {
+        setAnalyses(analysesWithProducts);
+      }
     } catch (error) {
       console.error("Error fetching analyses:", error);
       toast({
@@ -79,6 +103,7 @@ export default function Results() {
       });
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -396,6 +421,27 @@ export default function Results() {
             </Card>
           ))}
         </div>
+        
+        {/* Botão Carregar Mais */}
+        {hasMore && analyses.length > 0 && (
+          <div className="flex justify-center mt-8">
+            <Button
+              onClick={() => fetchAnalyses(true)}
+              disabled={loadingMore}
+              size="lg"
+              variant="outline"
+            >
+              {loadingMore ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
+                  Carregando...
+                </>
+              ) : (
+                "Carregar Mais Análises"
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
