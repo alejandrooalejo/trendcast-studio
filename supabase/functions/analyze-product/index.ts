@@ -40,11 +40,10 @@ serve(async (req) => {
     const hashArray = Array.from(new Uint8Array(imageHash));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // Check if this exact image has already been analyzed (globally, not just for this analysisId)
-    // This ensures the same image ALWAYS returns the same results regardless of which analysis it's in
+    // Check if this exact image has already been analyzed - query otimizada com campos específicos
     const { data: existingProduct, error: existingProductError } = await supabase
       .from('analysis_products')
-      .select('*')
+      .select('id, analysis_id, image_hash, sku, category, color, fabric, demand_score, risk_level, insights, analysis_description, sources, score_justification, recommended_quantity, target_audience_size, estimated_price, projected_revenue, estimated_production_cost, trend_status, trend_level, reason, related_trend, current_usage, recommendation, embedding_id')
       .eq('image_hash', hashHex)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -155,11 +154,11 @@ serve(async (req) => {
       );
     }
     
-    // Get trending data from database for this analysis
+    // Get trending data from database for this analysis - queries otimizadas
     const [colorsResult, fabricsResult, modelsResult] = await Promise.all([
-      supabase.from('trending_colors').select('*').eq('analysis_id', analysisId),
-      supabase.from('trending_fabrics').select('*').eq('analysis_id', analysisId),
-      supabase.from('trending_models').select('*').eq('analysis_id', analysisId)
+      supabase.from('trending_colors').select('name, hex_code, confidence_score, reason, sources, search_appearances').eq('analysis_id', analysisId).limit(10),
+      supabase.from('trending_fabrics').select('name, trend_percentage, reason, sources, search_appearances').eq('analysis_id', analysisId).limit(10),
+      supabase.from('trending_models').select('name, popularity, description, sources, search_appearances').eq('analysis_id', analysisId).limit(10)
     ]);
 
     const trendingColors = colorsResult.data || [];

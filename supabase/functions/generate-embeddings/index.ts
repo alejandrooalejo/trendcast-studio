@@ -51,12 +51,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if embedding already exists
+    // Check if embedding already exists - query otimizada
     const { data: existing } = await supabase
       .from("image_embeddings")
       .select("id, embedding")
       .eq("image_hash", imageHash)
-      .single();
+      .maybeSingle(); // maybeSingle é mais rápido que single
 
     if (existing && existing.embedding) {
       console.log("Embedding already exists:", existing.id);
