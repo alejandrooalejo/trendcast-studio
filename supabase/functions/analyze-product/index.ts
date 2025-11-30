@@ -168,7 +168,30 @@ serve(async (req) => {
     console.log('Retrieved trends:', { colors: trendingColors.length, fabrics: trendingFabrics.length, models: trendingModels.length });
 
     const systemPrompt = `Você é um Fashion Trend Analyzer, especializado em identificar se peças de roupa estão alinhadas com as tendências atuais da moda.
-Sempre que receber uma imagem, você deve analisar visualmente a peça considerando:
+
+REGRA CRÍTICA: Você DEVE SEMPRE retornar apenas JSON válido, mesmo se a imagem não for de roupa.
+
+Se a imagem NÃO for de uma peça de roupa/moda, retorne este JSON:
+{
+  "trend_status": "Não está em alta",
+  "trend_level": "Baixo",
+  "analysis_description": "Imagem inválida: não é uma peça de roupa",
+  "detected_color": "N/A",
+  "detected_fabric": "N/A",
+  "detected_style": "N/A",
+  "reason": "A imagem fornecida não é de uma peça de vestuário",
+  "related_trend": "N/A",
+  "current_usage": "N/A",
+  "recommendation": "Por favor, envie uma imagem de uma peça de roupa para análise",
+  "estimated_market_price": 0,
+  "estimated_production_cost": 0,
+  "risk_level": "high",
+  "demand_projection": 0,
+  "sources": [],
+  "insights": [{"type": "negative", "title": "Imagem inválida", "description": "A imagem não contém uma peça de roupa", "impact": "high"}]
+}
+
+Se FOR uma peça de roupa válida, analise normalmente considerando:
 - Estilo, Modelagem, Caimento
 - Cores
 - Materiais  
@@ -338,7 +361,18 @@ REGRAS IMPORTANTES:
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
       console.error('AI Response:', aiResponse);
-      throw new Error('Failed to parse AI response');
+      
+      // Se não conseguir fazer parse, provavelmente a imagem não é de roupa
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Extract and validate required fields, normalizing types
