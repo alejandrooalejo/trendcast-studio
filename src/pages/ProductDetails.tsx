@@ -51,19 +51,19 @@ export default function ProductDetails() {
   const getTrendIcon = (riskLevel: string) => {
     const riskLower = riskLevel?.toLowerCase();
     if (riskLower === "baixo" || riskLower === "low") {
-      return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
+      return <CheckCircle2 className="h-5 w-5 text-white" />;
     }
     if (riskLower === "alto" || riskLower === "high") {
-      return <AlertTriangle className="h-5 w-5 text-rose-400" />;
+      return <AlertTriangle className="h-5 w-5 text-white" />;
     }
-    return <AlertCircle className="h-5 w-5 text-amber-500" />;
+    return <AlertCircle className="h-5 w-5 text-white" />;
   };
 
   const getRiskBadge = (risk: string) => {
     const riskLower = risk?.toLowerCase();
     if (riskLower === "alto" || riskLower === "high") return "destructive";
-    if (riskLower === "baixo" || riskLower === "low") return "secondary";
-    return "default";
+    if (riskLower === "baixo" || riskLower === "low") return "default";
+    return "outline";
   };
 
   const getRiskLabel = (risk: string) => {
@@ -265,7 +265,13 @@ export default function ProductDetails() {
                 {product.risk_level && (
                   <Badge 
                     variant={getRiskBadge(product.risk_level)}
-                    className="text-sm h-8 px-4"
+                    className={`text-sm h-8 px-4 font-semibold ${
+                      product.risk_level?.toLowerCase() === 'alto' || product.risk_level?.toLowerCase() === 'high'
+                        ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-600'
+                        : product.risk_level?.toLowerCase() === 'baixo' || product.risk_level?.toLowerCase() === 'low'
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600'
+                    }`}
                   >
                     <div className="flex items-center gap-1.5">
                       {getTrendIcon(product.risk_level)}
