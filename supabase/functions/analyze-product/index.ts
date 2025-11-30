@@ -377,7 +377,9 @@ REGRAS IMPORTANTES:
 
     // Extract and validate required fields, normalizing types
     const rawDemandScore = Number(analysisData.demand_projection ?? 0);
-    const demandScore = Number.isFinite(rawDemandScore) ? Math.max(0, Math.min(100, Math.round(rawDemandScore))) : 0;
+    const demandScore = Number.isFinite(rawDemandScore)
+      ? Math.max(0, Math.min(100, Math.round(rawDemandScore)))
+      : 0;
     const estimatedPrice = Number(analysisData.estimated_market_price ?? 0) || 0;
     const productionCost = Number(analysisData.estimated_production_cost ?? 0) || 0;
     
@@ -387,12 +389,26 @@ REGRAS IMPORTANTES:
       throw new Error('Análise incompleta: dados críticos ausentes');
     }
 
-    // If AI explicitly says the image is not a clothing item, stop here and do NOT create a product
-    if (
-      typeof analysisData.analysis_description === 'string' &&
-      analysisData.analysis_description.toLowerCase().includes('imagem inválida')
-    ) {
-      console.warn('AI indicated invalid clothing image, aborting analysis:', analysisData.analysis_description);
+    // Detect explicit "invalid clothing image" pattern from the model
+    const isInvalidImage =
+      analysisData.detected_color === 'N/A' &&
+      analysisData.detected_fabric === 'N/A' &&
+      demandScore === 0 &&
+      estimatedPrice === 0 &&
+      productionCost === 0 &&
+      (
+        typeof analysisData.analysis_description === 'string' &&
+        analysisData.analysis_description.toLowerCase().includes('imagem inválida') ||
+        typeof analysisData.reason === 'string' &&
+        analysisData.reason.toLowerCase().includes('não é uma peça de vestuário')
+      );
+
+    if (isInvalidImage) {
+      console.warn('AI indicated invalid (non-clothing) image, aborting analysis:', {
+        analysis_description: analysisData.analysis_description,
+        reason: analysisData.reason,
+      });
+
       return new Response(
         JSON.stringify({
           success: false,
