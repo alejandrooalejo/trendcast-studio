@@ -322,7 +322,7 @@ export default function ProductDetails() {
             )}
 
             {/* Fashion Trend Analysis Section */}
-            {(product.score_justification || product.insights) && (
+            {(product.trend_status || product.trend_level || product.reason || product.related_trend || product.current_usage || product.recommendation) && (
               <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
                 <div className="flex items-start gap-3 mb-4">
                   <div className="p-2 bg-primary/10 rounded-lg">
@@ -330,125 +330,105 @@ export default function ProductDetails() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-semibold text-foreground mb-1">Análise de Tendência</p>
-                    <p className="text-xs text-muted-foreground">Avaliação completa do produto</p>
+                    <p className="text-xs text-muted-foreground">Avaliação Fashion Trend Analyzer</p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  {(() => {
-                    const justification = product.score_justification || '';
-                    const trendStatusMatch = justification.match(/(Em alta|Não está em alta)/i);
-                    const trendLevelMatch = justification.match(/Grau:\s*(Alto|Médio|Baixo)/i);
-                    const reasonMatch = justification.match(/Grau:\s*(?:Alto|Médio|Baixo)\.\s*(.+?)(?:\(Score:|$)/i);
-                    
-                    const trendStatus = trendStatusMatch ? trendStatusMatch[1] : null;
-                    const trendLevel = trendLevelMatch ? trendLevelMatch[1] : null;
-                    const reason = reasonMatch ? reasonMatch[1].trim() : null;
-                    
-                    const insights = product.insights || [];
-                    const relatedTrend = insights.find((i: any) => i.type === 'positive')?.title;
-                    const currentUsage = insights.find((i: any) => i.description?.includes('viral') || i.description?.includes('fast fashion') || i.description?.includes('coleções'))?.description;
-                    const recommendation = insights.find((i: any) => i.type === 'improvement')?.description;
-
-                    return (
-                      <>
-                        {/* Status da Tendência */}
-                        {trendStatus && (
-                          <div className="p-4 bg-background/60 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <CheckCircle2 className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-muted-foreground">STATUS DA TENDÊNCIA</span>
-                            </div>
-                            <Badge className={`text-base px-3 py-1 ${
-                              trendStatus.toLowerCase().includes('em alta') 
-                                ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' 
-                                : 'bg-amber-500/10 text-amber-700 border-amber-500/20'
-                            }`}>
-                              {trendStatus.toLowerCase().includes('em alta') ? (
-                                <TrendingUp className="h-4 w-4 mr-1" />
-                              ) : (
-                                <TrendingDown className="h-4 w-4 mr-1" />
-                              )}
-                              {trendStatus}
-                            </Badge>
-                          </div>
+                  {/* Status da Tendência */}
+                  {product.trend_status && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">STATUS DA TENDÊNCIA</span>
+                      </div>
+                      <Badge className={`text-base px-3 py-1 ${
+                        product.trend_status.toLowerCase().includes('em alta') 
+                          ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 hover:bg-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-700 border-amber-500/20 hover:bg-amber-500/20'
+                      }`}>
+                        {product.trend_status.toLowerCase().includes('em alta') ? (
+                          <TrendingUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 mr-1" />
                         )}
+                        {product.trend_status}
+                      </Badge>
+                    </div>
+                  )}
 
-                        {/* Grau de Tendência */}
-                        {trendLevel && (
-                          <div className="p-4 bg-background/60 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <BarChart3 className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-muted-foreground">GRAU DE TENDÊNCIA</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div className="flex gap-1">
-                                {[1, 2, 3].map((i) => (
-                                  <div
-                                    key={i}
-                                    className={`h-6 w-2 rounded-full ${
-                                      (trendLevel === 'Alto' && i <= 3) ||
-                                      (trendLevel === 'Médio' && i <= 2) ||
-                                      (trendLevel === 'Baixo' && i <= 1)
-                                        ? 'bg-primary'
-                                        : 'bg-muted'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                              <span className="text-lg font-bold font-display">{trendLevel}</span>
-                            </div>
-                          </div>
-                        )}
+                  {/* Grau de Tendência */}
+                  {product.trend_level && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">GRAU DE TENDÊNCIA</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className={`h-6 w-2 rounded-full ${
+                                (product.trend_level === 'Alto' && i <= 3) ||
+                                (product.trend_level === 'Médio' && i <= 2) ||
+                                (product.trend_level === 'Baixo' && i <= 1)
+                                  ? 'bg-primary'
+                                  : 'bg-muted'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-lg font-bold font-display">{product.trend_level}</span>
+                      </div>
+                    </div>
+                  )}
 
-                        {/* Motivo */}
-                        {reason && (
-                          <div className="p-4 bg-background/60 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Lightbulb className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-muted-foreground">MOTIVO</span>
-                            </div>
-                            <p className="text-sm text-foreground leading-relaxed">{reason}</p>
-                          </div>
-                        )}
+                  {/* Motivo */}
+                  {product.reason && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">MOTIVO</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{product.reason}</p>
+                    </div>
+                  )}
 
-                        {/* Tendência Relacionada */}
-                        {relatedTrend && (
-                          <div className="p-4 bg-background/60 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <ArrowUpCircle className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-muted-foreground">TENDÊNCIA RELACIONADA</span>
-                            </div>
-                            <Badge variant="outline" className="text-sm">
-                              {relatedTrend}
-                            </Badge>
-                          </div>
-                        )}
+                  {/* Tendência Relacionada */}
+                  {product.related_trend && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ArrowUpCircle className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">TENDÊNCIA RELACIONADA</span>
+                      </div>
+                      <Badge variant="outline" className="text-sm">
+                        {product.related_trend}
+                      </Badge>
+                    </div>
+                  )}
 
-                        {/* Uso Atual */}
-                        {currentUsage && (
-                          <div className="p-4 bg-background/60 rounded-lg border border-border/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Globe className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-muted-foreground">USO ATUAL</span>
-                            </div>
-                            <p className="text-sm text-foreground leading-relaxed">{currentUsage}</p>
-                          </div>
-                        )}
+                  {/* Uso Atual */}
+                  {product.current_usage && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">USO ATUAL</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{product.current_usage}</p>
+                    </div>
+                  )}
 
-                        {/* Recomendação */}
-                        {recommendation && (
-                          <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Lightbulb className="h-4 w-4 text-primary" />
-                              <span className="text-xs font-semibold text-primary">RECOMENDAÇÃO</span>
-                            </div>
-                            <p className="text-sm text-foreground leading-relaxed">{recommendation}</p>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
+                  {/* Recomendação */}
+                  {product.recommendation && (
+                    <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-primary">RECOMENDAÇÃO</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{product.recommendation}</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

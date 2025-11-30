@@ -63,6 +63,7 @@ export type Database = {
           category: string | null
           color: string | null
           created_at: string | null
+          current_usage: string | null
           demand_score: number | null
           embedding_id: string | null
           estimated_price: number | null
@@ -74,12 +75,17 @@ export type Database = {
           insights: Json | null
           normalized_image_url: string | null
           projected_revenue: number | null
+          reason: string | null
+          recommendation: string | null
           recommended_quantity: number | null
+          related_trend: string | null
           risk_level: string | null
           score_justification: string | null
           sku: string | null
           sources: Json | null
           target_audience_size: number | null
+          trend_level: string | null
+          trend_status: string | null
         }
         Insert: {
           analysis_description?: string | null
@@ -87,6 +93,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string | null
+          current_usage?: string | null
           demand_score?: number | null
           embedding_id?: string | null
           estimated_price?: number | null
@@ -98,12 +105,17 @@ export type Database = {
           insights?: Json | null
           normalized_image_url?: string | null
           projected_revenue?: number | null
+          reason?: string | null
+          recommendation?: string | null
           recommended_quantity?: number | null
+          related_trend?: string | null
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
           sources?: Json | null
           target_audience_size?: number | null
+          trend_level?: string | null
+          trend_status?: string | null
         }
         Update: {
           analysis_description?: string | null
@@ -111,6 +123,7 @@ export type Database = {
           category?: string | null
           color?: string | null
           created_at?: string | null
+          current_usage?: string | null
           demand_score?: number | null
           embedding_id?: string | null
           estimated_price?: number | null
@@ -122,12 +135,17 @@ export type Database = {
           insights?: Json | null
           normalized_image_url?: string | null
           projected_revenue?: number | null
+          reason?: string | null
+          recommendation?: string | null
           recommended_quantity?: number | null
+          related_trend?: string | null
           risk_level?: string | null
           score_justification?: string | null
           sku?: string | null
           sources?: Json | null
           target_audience_size?: number | null
+          trend_level?: string | null
+          trend_status?: string | null
         }
         Relationships: [
           {
