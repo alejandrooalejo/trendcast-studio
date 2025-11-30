@@ -277,6 +277,62 @@ export default function Trends() {
       {/* Background Gradient */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-primary/5 via-background to-accent/10" />
       
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              className="bg-card border-2 border-primary/20 rounded-2xl p-12 shadow-2xl max-w-md w-full mx-4"
+            >
+              <div className="flex flex-col items-center space-y-6">
+                {/* Animated Icon */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center"
+                >
+                  <Sparkles className="h-10 w-10 text-primary" />
+                </motion.div>
+                
+                {/* Title */}
+                <div className="text-center space-y-2">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                    Gerando Análise
+                  </h3>
+                  <p className="text-muted-foreground">
+                    A IA está processando seus produtos e identificando tendências...
+                  </p>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full space-y-2">
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary/80 to-primary"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </div>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Isso pode levar alguns instantes...
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
       <div className="max-w-4xl mx-auto px-4 py-12">
         {/* Header com Gradiente */}
         <motion.div 
@@ -475,12 +531,7 @@ export default function Trends() {
                 {/* Step 3: Results */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
-                    {loading ? (
-                      <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                        <p className="text-muted-foreground">Gerando análise...</p>
-                      </div>
-                    ) : analysisResults ? (
+                    {analysisResults ? (
                       <div className="space-y-6">
                         <Card className="border-2">
                           <CardHeader>
