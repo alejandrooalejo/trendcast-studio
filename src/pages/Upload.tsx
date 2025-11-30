@@ -192,6 +192,19 @@ export default function Upload() {
 
       if (error) throw error;
 
+      // Check if the image is not a clothing item
+      if (!data.success && data.error) {
+        updateFile(fileId, { 
+          analyzing: false,
+          error: data.error
+        });
+        toast.error(data.error, {
+          duration: 5000,
+          icon: <ImageOff className="h-5 w-5" />
+        });
+        return; // Stop analysis for this product
+      }
+
       if (data.success) {
         updateFile(fileId, { 
           analyzing: false, 
@@ -200,7 +213,7 @@ export default function Upload() {
         });
         toast.success("Análise concluída!");
       } else {
-        throw new Error(data.error || 'Erro na análise');
+        throw new Error('Erro na análise');
       }
     } catch (error: any) {
       console.error('Error analyzing product:', error);

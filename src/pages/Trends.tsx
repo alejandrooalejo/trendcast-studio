@@ -197,6 +197,17 @@ export default function Trends() {
               return null;
             }
 
+            // Check if the image is not a clothing item
+            if (!productData.success && productData.error) {
+              console.warn(`Product ${index + 1} is not a clothing item:`, productData.error);
+              toast({
+                title: `Produto ${index + 1} - Imagem Inválida`,
+                description: productData.error,
+                variant: "destructive",
+              });
+              return null; // Stop analysis for this product
+            }
+
             console.log(`Product ${index + 1} analyzed successfully:`, productData);
             
             toast({
