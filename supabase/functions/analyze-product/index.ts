@@ -92,9 +92,17 @@ serve(async (req) => {
 
     console.log('Retrieved trends:', { colors: trendingColors.length, fabrics: trendingFabrics.length, models: trendingModels.length });
 
-    const systemPrompt = `Você é um especialista em análise de moda que avalia produtos usando um método objetivo e consistente.
-Você DEVE ser determinístico: a mesma imagem SEMPRE deve gerar os mesmos scores.
-Use critérios objetivos e mensuráveis para garantir consistência.`;
+    const systemPrompt = `Você é um Fashion Trend Analyzer, especializado em identificar se peças de roupa estão alinhadas com as tendências atuais da moda.
+Sempre que receber uma imagem, você deve analisar visualmente a peça considerando:
+- Estilo, Modelagem, Caimento
+- Cores
+- Materiais  
+- Estética geral
+
+Compare com tendências atuais, considerando:
+- Moda feminina, masculina e unissex
+- Streetwear, passarelas, fast fashion, TikTok e comportamento de consumo
+- Estéticas predominantes (ex.: Y2K, minimalismo, quiet luxury, Old Money, athleisure, oversized, normcore, workwear etc.)`;
 
     // Calculate source data counts from trends
     const sourceDataMap = new Map<string, number>();
@@ -129,158 +137,69 @@ Use critérios objetivos e mensuráveis para garantir consistência.`;
     }));
 
     const trendsSummary = `
-METODOLOGIA DE CÁLCULO (USAR SEMPRE):
-Para garantir consistência, siga EXATAMENTE estes critérios objetivos:
+TENDÊNCIAS ATUAIS PARA COMPARAÇÃO:
 
-1. ANÁLISE DE COR (Peso: 35% do score final):
-   Cores disponíveis para comparação:
-   ${colorMatchData.map(c => `   - ${c.name} (${c.hex}): ${c.confidence}% confiança, ${c.appearances} aparições`).join('\n')}
-   
-   Calcule color_match (0-100):
-   - Cor idêntica à tendência principal: 100 pontos
-   - Cor similar (mesma família): 80-90 pontos
-   - Cor complementar: 60-70 pontos
-   - Cor fora das tendências: 30-50 pontos
-   - Cor oposta às tendências: 0-20 pontos
+Cores em Alta:
+${colorMatchData.map(c => `- ${c.name} (${c.hex}): ${c.confidence}% confiança, ${c.appearances} aparições`).join('\n')}
 
-2. ANÁLISE DE TECIDO (Peso: 30% do score final):
-   Tecidos em tendência:
-   ${fabricMatchData.map(f => `   - ${f.name}: ${f.percentage}, ${f.appearances} aparições`).join('\n')}
-   
-   Calcule fabric_match (0-100):
-   - Tecido exato da tendência principal: 100 pontos
-   - Tecido da mesma categoria: 75-85 pontos
-   - Tecido neutro/versátil: 50-65 pontos
-   - Tecido fora das tendências: 20-40 pontos
+Tecidos em Tendência:
+${fabricMatchData.map(f => `- ${f.name}: ${f.percentage}, ${f.appearances} aparições`).join('\n')}
 
-3. ANÁLISE DE MODELAGEM (Peso: 35% do score final):
-   Modelagens populares:
-   ${modelMatchData.map(m => `   - ${m.name} (${m.popularity}): ${m.appearances} aparições`).join('\n')}
-   
-   Calcule style_match (0-100):
-   - Modelagem idêntica à tendência principal: 100 pontos
-   - Modelagem similar: 80-90 pontos
-   - Modelagem atemporal/clássica: 60-70 pontos
-   - Modelagem desalinhada: 30-50 pontos
-   - Modelagem oposta às tendências: 0-20 pontos
+Modelagens Populares:
+${modelMatchData.map(m => `- ${m.name} (${m.popularity}): ${m.appearances} aparições`).join('\n')}
 
-FÓRMULA OBRIGATÓRIA PARA demand_projection:
-demand_projection = (color_match × 0.35) + (fabric_match × 0.30) + (style_match × 0.35)
-
-FONTES DE DADOS UTILIZADAS:
+FONTES DE DADOS:
 ${Array.from(sourceDataMap.entries()).map(([source, count]) => `- ${source}: ${count} pontos de dados`).join('\n')}
 `;
 
-    const userPrompt = `Analise este produto de moda na imagem usando a METODOLOGIA OBJETIVA fornecida.
+    const userPrompt = `Analise esta peça de roupa e determine se ela está alinhada com as tendências atuais da moda.
 ${category ? `Categoria: ${category}` : ''}
 ${sku ? `SKU: ${sku}` : ''}
 
 ${trendsSummary}
 
-INSTRUÇÕES CRÍTICAS PARA CONSISTÊNCIA:
-- Você DEVE usar os critérios numéricos EXATOS fornecidos na metodologia
-- Você DEVE calcular demand_projection usando a fórmula: (color_match × 0.35) + (fabric_match × 0.30) + (style_match × 0.35)
-- Você DEVE ser objetivo: mesma imagem = mesmos scores SEMPRE
-- Você DEVE explicitar no JSON EXATAMENTE qual tendência foi usada para cada cálculo
-
-Forneça uma análise em JSON com esta estrutura OBRIGATÓRIA:
+Responda SEMPRE neste formato JSON estruturado:
 {
-  "analysis_description": "Descrição visual objetiva: cores exatas vistas, tecido aparente, modelagem específica",
-  "detected_color": "Nome da cor + código hex aproximado (ex: 'Azul Marinho #1A3B5C')",
-  "detected_fabric": "Tipo de tecido detectado visualmente",
-  "detected_style": "Modelagem/corte identificado",
+  "trend_status": "Em alta" ou "Não está em alta",
+  "trend_level": "Alto", "Médio" ou "Baixo",
+  "analysis_description": "Descrição visual da peça: cores, tecido, modelagem, estilo",
+  "detected_color": "Nome da cor + código hex (ex: 'Azul Marinho #1A3B5C')",
+  "detected_fabric": "Tipo de tecido identificado",
+  "detected_style": "Modelagem/corte/estilo detectado",
+  "reason": "Explique de forma curta com base nas tendências atuais por que está ou não em alta",
+  "related_trend": "Nome da estética ou movimento de moda relacionado (ex: Y2K, quiet luxury, streetwear, athleisure)",
+  "current_usage": "Onde essa tendência aparece atualmente (ex: 'viral em redes sociais', 'comum em fast fashion', 'apareceu nas coleções recentes', 'usado por influenciadores')",
+  "recommendation": "Como usar, combinar ou adaptar. Se não está em alta, sugira mudanças específicas",
   "estimated_market_price": 89.90,
   "estimated_production_cost": 35.50,
-  "sources": [
-    {"source": "Nome da Fonte", "count": número_exato_da_metodologia}
-  ],
   "risk_level": "low/medium/high",
-  "confidence_levels": {
-    "color_detection": 0-100,
-    "fabric_detection": 0-100,
-    "style_detection": 0-100,
-    "overall_confidence": 0-100
-  },
-  "comparison": {
-    "color_match": 90,
-    "color_reasoning": "OBRIGATÓRIO: Explique o score baseado nos critérios da metodologia. Ex: 'Cor azul marinho idêntica à tendência #1 (Azul Marinho #1A3B5C, 95% confiança) = 100 pontos'",
-    "color_trend_reference": "Nome exato da tendência de cor + dados (ex: 'Azul Marinho #1A3B5C - 950 aparições')",
-    "fabric_match": 75,
-    "fabric_reasoning": "OBRIGATÓRIO: Explique o score. Ex: 'Malha de algodão similar à tendência principal (Malha Sustentável, 85% das aparições) = 85 pontos'",
-    "fabric_trend_reference": "Nome exato da tendência de tecido + dados",
-    "style_match": 80,
-    "style_reasoning": "OBRIGATÓRIO: Explique o score. Ex: 'Corte oversized idêntico à tendência #2 (Oversized, alta popularidade) = 95 pontos'",
-    "style_trend_reference": "Nome exato da tendência de modelagem + dados",
-    "overall_trend_alignment": 82
-  },
-  "scoring_breakdown": {
-    "color_component": {
-      "weight": 35,
-      "raw_score": 90,
-      "weighted_score": 31.5,
-      "explanation": "Cor detectada corresponde a 90% da tendência principal, resultando em 31.5 pontos (35% do total)"
-    },
-    "fabric_component": {
-      "weight": 30,
-      "raw_score": 75,
-      "weighted_score": 22.5,
-      "explanation": "Tecido similar às tendências, contribuindo com 22.5 pontos (30% do total)"
-    },
-    "style_component": {
-      "weight": 35,
-      "raw_score": 80,
-      "weighted_score": 28.0,
-      "explanation": "Modelagem alinhada às tendências, adicionando 28.0 pontos (35% do total)"
-    },
-    "total_score": 82.0,
-    "score_interpretation": "Score de 82/100 indica ALTA demanda. Produto bem alinhado com tendências atuais."
-  },
-  "demand_projection": 0,
-  "demand_calculation": "OBRIGATÓRIO: Mostre o cálculo EXATO: (90 × 0.35) + (75 × 0.30) + (80 × 0.35) = 82.0",
+  "demand_projection": 0-100,
+  "sources": [
+    {"source": "Nome da Fonte", "count": número}
+  ],
   "insights": [
     {
       "type": "positive/negative/improvement",
-      "title": "Título claro",
-      "description": "Insight ESPECÍFICO com dados: qual tendência, quantas aparições, qual o impacto",
-      "impact": "high/medium/low",
-      "supporting_data": "Referência à tendência específica usada",
-      "impact_on_score": "Quantificar o impacto no score final (ex: '+15 pontos no color_match')"
-    }
-  ],
-  "improvements": [
-    {
-      "aspect": "cor/tecido/modelagem",
-      "current": "O que está no produto",
-      "current_score": 75,
-      "suggested": "Tendência específica a seguir (nome + dados)",
-      "suggested_score": 95,
-      "reason": "Por que esta mudança aumentaria o score (mostre o cálculo)",
-      "score_increase": 20,
-      "weighted_impact": 6.0,
-      "new_total_score": 88.0,
-      "priority": "high/medium/low",
-      "implementation_difficulty": "easy/medium/hard"
+      "title": "Título do insight",
+      "description": "Descrição detalhada",
+      "impact": "high/medium/low"
     }
   ]
 }
 
-REGRAS OBRIGATÓRIAS:
-1. Use os critérios NUMÉRICOS da metodologia para calcular cada match score
-2. O demand_projection DEVE ser calculado com a fórmula fornecida
-3. Inclua "reasoning" para CADA score de comparação
-4. Inclua "demand_calculation" mostrando a matemática exata
-5. Cada insight DEVE referenciar dados específicos das tendências E incluir impact_on_score
-6. Cada improvement DEVE mostrar o impacto numérico no score COM os campos score_increase e weighted_impact
-7. Use os valores EXATOS de "FONTES DE DADOS" no campo sources
-8. risk_level baseado em: demand_projection > 75 = "low", 50-75 = "medium", < 50 = "high"
-9. estimated_market_price: Faça uma pesquisa mental de mercado em grandes e-commerces brasileiros (Renner, C&A, Riachuelo, Zara, H&M, Shein) para produtos similares em categoria${category ? ` "${category}"` : ''}, tecido e modelagem. Calcule a MÉDIA de preços encontrados. Considere qualidade e alinhamento com tendências para ajustar +/- 15% da média.
-10. estimated_production_cost: Análise REALISTA baseada em materiais e complexidade visíveis (considere mercado brasileiro de confecção)
-11. PREENCHA TODOS OS CAMPOS de confidence_levels (0-100) baseado na clareza visual da detecção
-12. PREENCHA TODOS OS CAMPOS de scoring_breakdown com explicações detalhadas de cada componente
-13. Para cada improvement, calcule current_score, suggested_score, score_increase, weighted_impact e new_total_score
-14. Adicione priority e implementation_difficulty em cada improvement para ajudar na priorização
-
-IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem SEMPRE gerará os mesmos scores!`;
+REGRAS IMPORTANTES:
+1. trend_status deve ser "Em alta" ou "Não está em alta"
+2. trend_level deve ser "Alto", "Médio" ou "Baixo" baseado no alinhamento com as tendências
+3. reason deve ser curto, objetivo e referenciando as tendências listadas acima
+4. related_trend deve mencionar uma estética ou movimento de moda específico
+5. current_usage deve indicar onde a tendência está aparecendo no momento (redes, fast fashion, passarelas, etc)
+6. recommendation deve ser prática e acionável
+7. demand_projection: calcule 0-100 baseado no alinhamento (Alto=80-100, Médio=50-79, Baixo=0-49)
+8. risk_level: "low" se demand_projection > 75, "medium" se 50-75, "high" se < 50
+9. estimated_market_price: pesquise mentalmente preços em e-commerces brasileiros para produtos similares
+10. estimated_production_cost: análise realista baseada em materiais e complexidade
+11. sources: use os dados das fontes listadas acima
+12. insights: forneça 2-3 insights práticos sobre a peça`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -401,9 +320,8 @@ IMPORTANTE: Sendo objetivo e usando sempre os mesmos critérios, a mesma imagem 
     const totalProductionCost = productionCost * recommendedQuantity;
     const profitMargin = estimatedPrice > 0 ? ((estimatedPrice - productionCost) / estimatedPrice * 100) : 0;
 
-    // Build score justification from the comparison data
-    const scoreJustification = analysisData.demand_calculation || 
-      `Score baseado em: Cor (${analysisData.comparison?.color_match || 0}), Tecido (${analysisData.comparison?.fabric_match || 0}), Modelagem (${analysisData.comparison?.style_match || 0})`;
+    // Build score justification from the new format
+    const scoreJustification = `${analysisData.trend_status} - Grau: ${analysisData.trend_level}. ${analysisData.reason || ''} (Score: ${demandScore}/100)`;
 
     console.log(`Calculated recommended quantity: ${recommendedQuantity} for demand score: ${demandScore}`);
     console.log(`Target audience size: ${targetAudienceSize} (conversion rate: ${conversionRate * 100}%)`);
