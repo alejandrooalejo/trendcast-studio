@@ -40,12 +40,14 @@ serve(async (req) => {
     const hashArray = Array.from(new Uint8Array(imageHash));
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // Check if this exact image has already been analyzed for this analysisId using hash
+    // Check if this exact image has already been analyzed (globally, not just for this analysisId)
+    // This ensures the same image ALWAYS returns the same results regardless of which analysis it's in
     const { data: existingProduct, error: existingProductError } = await supabase
       .from('analysis_products')
       .select('*')
-      .eq('analysis_id', analysisId)
       .eq('image_hash', hashHex)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle();
 
     if (existingProductError && existingProductError.code !== 'PGRST116') {
@@ -53,7 +55,75 @@ serve(async (req) => {
     }
 
     if (existingProduct) {
-      console.log('Found existing analysis for same image, reusing results:', existingProduct.id);
+      console.log('Found existing analysis for same image (hash match), reusing results:', existingProduct.id);
+      
+      // Create a new product record with the same analysis data but linked to the current analysisId
+      const duplicateProductData = {
+        analysis_id: analysisId,
+        image_url: imageBase64,
+        image_hash: hashHex,
+        sku: sku || existingProduct.sku,
+        category: category || existingProduct.category,
+        color: existingProduct.color,
+        fabric: existingProduct.fabric,
+        demand_score: existingProduct.demand_score,
+        risk_level: existingProduct.risk_level,
+        insights: existingProduct.insights,
+        analysis_description: existingProduct.analysis_description,
+        sources: existingProduct.sources,
+        score_justification: existingProduct.score_justification,
+        recommended_quantity: existingProduct.recommended_quantity,
+        target_audience_size: existingProduct.target_audience_size,
+        estimated_price: existingProduct.estimated_price,
+        projected_revenue: existingProduct.projected_revenue,
+        estimated_production_cost: existingProduct.estimated_production_cost,
+        trend_status: existingProduct.trend_status,
+        trend_level: existingProduct.trend_level,
+        reason: existingProduct.reason,
+        related_trend: existingProduct.related_trend,
+        current_usage: existingProduct.current_usage,
+        recommendation: existingProduct.recommendation,
+        embedding_id: existingProduct.embedding_id
+      };
+
+      const { data: newProduct, error: insertError } = await supabase
+        .from('analysis_products')
+        .insert(duplicateProductData)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating duplicate product:', insertError);
+        // Return the existing product data anyway
+        return new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              analysis_description: existingProduct.analysis_description,
+              detected_color: existingProduct.color,
+              detected_fabric: existingProduct.fabric,
+              risk_level: existingProduct.risk_level,
+              demand_projection: existingProduct.demand_score,
+              demand_calculation: existingProduct.score_justification,
+              estimated_market_price: existingProduct.estimated_price,
+              estimated_production_cost: existingProduct.estimated_production_cost,
+              insights: existingProduct.insights,
+              sources: existingProduct.sources,
+              recommended_quantity: existingProduct.recommended_quantity,
+              target_audience_size: existingProduct.target_audience_size,
+              projected_revenue: existingProduct.projected_revenue,
+              trend_status: existingProduct.trend_status,
+              trend_level: existingProduct.trend_level,
+              reason: existingProduct.reason,
+              related_trend: existingProduct.related_trend,
+              current_usage: existingProduct.current_usage,
+              recommendation: existingProduct.recommendation,
+              product_id: existingProduct.id,
+            },
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
 
       return new Response(
         JSON.stringify({
@@ -72,7 +142,13 @@ serve(async (req) => {
             recommended_quantity: existingProduct.recommended_quantity,
             target_audience_size: existingProduct.target_audience_size,
             projected_revenue: existingProduct.projected_revenue,
-            product_id: existingProduct.id,
+            trend_status: existingProduct.trend_status,
+            trend_level: existingProduct.trend_level,
+            reason: existingProduct.reason,
+            related_trend: existingProduct.related_trend,
+            current_usage: existingProduct.current_usage,
+            recommendation: existingProduct.recommendation,
+            product_id: newProduct.id,
           },
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -222,7 +298,8 @@ REGRAS IMPORTANTES:
             ]
           }
         ],
-        temperature: 0.1, // Low temperature for consistency - same image should always produce same scores
+        temperature: 0, // Zero temperature for maximum consistency - same image = same results
+        seed: parseInt(hashHex.substring(0, 8), 16), // Use image hash as seed for deterministic results
       }),
     });
 
