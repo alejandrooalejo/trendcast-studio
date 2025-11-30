@@ -383,11 +383,70 @@ export default function Upload() {
           <p className="text-lg text-muted-foreground">Compare seus produtos com as tendências do mercado</p>
         </motion.div>
 
-        {/* Analysis Selection */}
+        {/* Image Requirements Warning */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <Card className="border-2 border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h3 className="font-semibold text-lg mb-2 text-amber-900 dark:text-amber-100">
+                      Apenas fotos de peças de roupa
+                    </h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mb-4">
+                      Para uma análise precisa, envie apenas imagens claras de produtos de moda. 
+                      Fotos de paisagens, pessoas, objetos ou ambientes não serão processadas.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Aceitas */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="font-medium text-sm">Imagens Aceitas:</span>
+                      </div>
+                      <ul className="text-xs space-y-1 text-amber-700 dark:text-amber-300 ml-6">
+                        <li>• Camisetas, blusas, vestidos</li>
+                        <li>• Calças, shorts, saias</li>
+                        <li>• Jaquetas, casacos, moletons</li>
+                        <li>• Acessórios de moda</li>
+                      </ul>
+                    </div>
+                    
+                    {/* Não Aceitas */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400">
+                        <X className="h-4 w-4" />
+                        <span className="font-medium text-sm">Imagens Não Aceitas:</span>
+                      </div>
+                      <ul className="text-xs space-y-1 text-amber-700 dark:text-amber-300 ml-6">
+                        <li>• Paisagens ou ambientes</li>
+                        <li>• Pessoas vestindo as peças</li>
+                        <li>• Objetos não relacionados</li>
+                        <li>• Imagens borradas ou escuras</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Analysis Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
           className="mb-12"
         >
           <Label htmlFor="analysis-select" className="text-sm font-medium mb-3 block">
@@ -411,7 +470,7 @@ export default function Upload() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="mb-12"
         >
           <div
