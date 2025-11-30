@@ -386,6 +386,24 @@ REGRAS IMPORTANTES:
       console.error('Missing critical analysis data:', analysisData);
       throw new Error('Análise incompleta: dados críticos ausentes');
     }
+
+    // If AI explicitly says the image is not a clothing item, stop here and do NOT create a product
+    if (
+      typeof analysisData.analysis_description === 'string' &&
+      analysisData.analysis_description.toLowerCase().includes('imagem inválida')
+    ) {
+      console.warn('AI indicated invalid clothing image, aborting analysis:', analysisData.analysis_description);
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.'
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        },
+      );
+    }
     
     console.log('Extracted values:', {
       demandScore,
