@@ -79,7 +79,7 @@ serve(async (req) => {
             error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.'
           }),
           {
-            status: 400,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           },
         );
@@ -398,7 +398,7 @@ REGRAS IMPORTANTES:
           error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.' 
         }),
         { 
-          status: 400, 
+          status: 200, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );
@@ -444,7 +444,7 @@ REGRAS IMPORTANTES:
           error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.'
         }),
         {
-          status: 400,
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         },
       );
