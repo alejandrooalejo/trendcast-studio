@@ -38,28 +38,36 @@ export default function Results() {
 
       const { data: analysesData, error: analysesError } = await supabase
         .from("analyses")
-        .select("*")
+        .select("id, collection_name, collection_type, created_at, status, user_id")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
       if (analysesError) throw analysesError;
 
-      // Fetch products for each analysis
-      const analysesWithProducts = await Promise.all(
-        (analysesData || []).map(async (analysis) => {
-          const { data: products, error: productsError } = await supabase
-            .from("analysis_products")
-            .select("*")
-            .eq("analysis_id", analysis.id);
+      // Otimização: buscar TODOS os produtos de uma vez em vez de um por um
+      const analysisIds = (analysesData || []).map(a => a.id);
+      
+      const { data: allProducts, error: productsError } = await supabase
+        .from("analysis_products")
+        .select("id, analysis_id, sku, category, color, image_url, risk_level, demand_score, estimated_price")
+        .in("analysis_id", analysisIds);
 
-          if (productsError) console.error("Error fetching products:", productsError);
+      if (productsError) console.error("Error fetching products:", productsError);
 
-          return {
-            ...analysis,
-            products: products || [],
-          };
-        })
-      );
+      // Agrupar produtos por análise
+      const productsByAnalysis = (allProducts || []).reduce((acc, product) => {
+        if (!acc[product.analysis_id]) {
+          acc[product.analysis_id] = [];
+        }
+        acc[product.analysis_id].push(product);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      // Montar análises com produtos
+      const analysesWithProducts = (analysesData || []).map(analysis => ({
+        ...analysis,
+        products: productsByAnalysis[analysis.id] || [],
+      }));
 
       setAnalyses(analysesWithProducts);
     } catch (error) {

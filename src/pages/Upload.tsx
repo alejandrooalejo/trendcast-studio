@@ -73,7 +73,8 @@ export default function Upload() {
         .from('analyses')
         .select('id, collection_name')
         .eq('status', 'completed')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50); // Limitar para performance
 
       if (error) throw error;
       setAvailableAnalyses(data || []);
@@ -238,7 +239,7 @@ export default function Upload() {
     }
   };
 
-  const handleAnalyzeAll = () => {
+  const handleAnalyzeAll = async () => {
     if (files.length === 0) {
       toast.error("Adicione pelo menos um produto para análise");
       return;
@@ -248,11 +249,11 @@ export default function Upload() {
       return;
     }
     
-    files.forEach(file => {
-      if (!file.analysis) {
-        analyzeProduct(file.id);
-      }
-    });
+    // Paralelizar análises para velocidade máxima
+    const filesToAnalyze = files.filter(f => !f.analysis);
+    await Promise.all(
+      filesToAnalyze.map(file => analyzeProduct(file.id))
+    );
   };
 
   const getRiskColor = (level: string) => {
