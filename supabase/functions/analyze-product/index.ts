@@ -56,6 +56,35 @@ serve(async (req) => {
     if (existingProduct) {
       console.log('Found existing analysis for same image (hash match), reusing results:', existingProduct.id);
       
+      // If the existing product itself came from an invalid (non-clothing) image,
+      // do NOT create a new record and surface the error instead.
+      const isExistingInvalid =
+        (existingProduct.color === 'N/A' || existingProduct.color === null) &&
+        (existingProduct.fabric === 'N/A' || existingProduct.fabric === null) &&
+        (existingProduct.demand_score === 0 || existingProduct.demand_score === null) &&
+        (existingProduct.estimated_price === 0 || existingProduct.estimated_price === null) &&
+        (existingProduct.estimated_production_cost === 0 || existingProduct.estimated_production_cost === null) &&
+        (
+          typeof existingProduct.analysis_description === 'string' &&
+            existingProduct.analysis_description.toLowerCase().includes('imagem inválida') ||
+          typeof existingProduct.reason === 'string' &&
+            existingProduct.reason.toLowerCase().includes('não é uma peça de vestuário')
+        );
+
+      if (isExistingInvalid) {
+        console.warn('Existing product for this image is marked as invalid (non-clothing). Aborting analysis reuse.');
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'A imagem não parece ser de uma peça de roupa. Por favor, envie uma imagem clara de um produto de moda.'
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          },
+        );
+      }
+      
       // Create a new product record with the same analysis data but linked to the current analysisId
       const duplicateProductData = {
         analysis_id: analysisId,
