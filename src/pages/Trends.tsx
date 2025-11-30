@@ -348,48 +348,35 @@ export default function Trends() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center"
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-card border-2 border-destructive/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-enter"
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border border-border rounded-xl p-6 max-w-sm w-full shadow-lg"
             >
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
-                    <ImageOff className="h-5 w-5 text-destructive" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">Análise cancelada para este produto</h3>
-                    <p className="text-sm text-muted-foreground">
-                      A imagem enviada não parece ser de uma peça de roupa. A análise deste produto foi interrompida, mas a análise geral de tendências foi concluída.
-                    </p>
-                  </div>
+              <div className="flex flex-col items-center text-center gap-4">
+                {/* Icon */}
+                <div className="h-12 w-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                  <ImageOff className="h-6 w-6 text-destructive" />
                 </div>
 
-                <div className="rounded-xl bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
-                  {invalidImageMessage}
-                </div>
+                {/* Title */}
+                <h3 className="text-lg font-semibold">Imagem não é de roupa</h3>
 
-                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-                  <p className="font-medium">Envie imagens que sigam estas orientações:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Foto focada apenas na peça de roupa ou acessório</li>
-                    <li>Fundo simples, sem pessoas usando a peça</li>
-                    <li>Boa iluminação e peça totalmente visível</li>
-                  </ul>
-                </div>
+                {/* Description */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Envie fotos claras de peças de roupa ou acessórios, com fundo simples e boa iluminação.
+                </p>
 
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setInvalidImageMessage(null)}
-                  >
-                    Entendi
-                  </Button>
-                </div>
+                {/* Action */}
+                <Button
+                  onClick={() => setInvalidImageMessage(null)}
+                  className="w-full mt-2"
+                >
+                  Entendi
+                </Button>
               </div>
             </motion.div>
           </motion.div>
