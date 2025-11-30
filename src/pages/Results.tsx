@@ -357,24 +357,12 @@ export default function Results() {
                               </div>
                             )}
 
-                            {product.recommended_quantity && (
-                              <div className="grid grid-cols-3 gap-2 pt-2">
-                                <div className="text-center p-2 bg-muted/30 rounded-lg">
-                                  <p className="text-xs text-muted-foreground">Unidades</p>
-                                  <p className="text-sm font-bold font-display">{product.recommended_quantity}</p>
+                            {product.estimated_price && (
+                              <div className="pt-2">
+                                <div className="text-center p-3 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
+                                  <p className="text-xs text-muted-foreground mb-1">Valor Médio de Mercado</p>
+                                  <p className="text-xl font-bold font-display text-primary">R$ {product.estimated_price.toFixed(2)}</p>
                                 </div>
-                                {product.estimated_price && (
-                                  <div className="text-center p-2 bg-muted/30 rounded-lg">
-                                    <p className="text-xs text-muted-foreground">Preço</p>
-                                    <p className="text-sm font-bold font-display">R$ {product.estimated_price.toFixed(2)}</p>
-                                  </div>
-                                )}
-                                {product.estimated_production_cost && (
-                                  <div className="text-center p-2 bg-muted/30 rounded-lg">
-                                    <p className="text-xs text-muted-foreground">Custo</p>
-                                    <p className="text-sm font-bold font-display">R$ {product.estimated_production_cost.toFixed(2)}</p>
-                                  </div>
-                                )}
                               </div>
                             )}
 
