@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, Sparkles, ImageOff, Clock, Calendar, TrendingUp as TrendingUpIcon } from "lucide-react";
+import { ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, Sparkles, ImageOff, Clock, Calendar, TrendingUp as TrendingUpIcon, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -157,6 +157,39 @@ export default function Results() {
       return "text-slate-600 bg-slate-50 border-slate-200";
     } catch {
       return "text-slate-600 bg-slate-50 border-slate-200";
+    }
+  };
+
+  const handleDeleteAnalysis = async (analysisId: string, collectionName: string) => {
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir a análise "${collectionName}"? Esta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Deletar análise (produtos relacionados serão deletados automaticamente por cascade)
+      const { error } = await supabase
+        .from("analyses")
+        .delete()
+        .eq("id", analysisId);
+
+      if (error) throw error;
+
+      // Atualizar estado local
+      setAnalyses(analyses.filter(a => a.id !== analysisId));
+
+      toast({
+        title: "Análise excluída",
+        description: "A análise foi removida com sucesso",
+      });
+    } catch (error) {
+      console.error("Error deleting analysis:", error);
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a análise",
+        variant: "destructive",
+      });
     }
   };
 
@@ -318,6 +351,17 @@ export default function Results() {
                         Novo
                       </Badge>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteAnalysis(analysis.id, analysis.collection_name);
+                      }}
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
