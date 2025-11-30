@@ -24,11 +24,7 @@ export default function Analysis() {
     if (analysisId) {
       fetchAnalysisData();
     } else {
-      toast({
-        title: "ID da análise não encontrado",
-        description: "Redirecionando para resultados...",
-        variant: "destructive",
-      });
+      // Sem toast: apenas redireciona silenciosamente se não houver ID
       navigate("/results");
     }
   }, [analysisId]);
