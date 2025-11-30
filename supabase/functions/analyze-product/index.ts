@@ -299,7 +299,7 @@ REGRAS IMPORTANTES:
           }
         ],
         temperature: 0, // Zero temperature for maximum consistency - same image = same results
-        seed: parseInt(hashHex.substring(0, 8), 16), // Use image hash as seed for deterministic results
+        seed: parseInt(hashHex.substring(0, 7), 16), // Use 7 hex chars to stay within INT32 range
       }),
     });
 
