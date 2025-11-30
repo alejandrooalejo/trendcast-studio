@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft, CheckCircle2, AlertTriangle, AlertCircle, Clock, TrendingUpIcon } from "lucide-react";
+import { Sparkles, Upload as UploadIcon, X, ChevronRight, ChevronLeft, CheckCircle2, AlertTriangle, AlertCircle, Clock, TrendingUpIcon, ImageOff } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,7 @@ export default function Trends() {
   // Analysis results
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysisResults, setAnalysisResults] = useState<any>(null);
+  const [invalidImageMessage, setInvalidImageMessage] = useState<string | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -198,13 +199,9 @@ export default function Trends() {
             }
 
             // Check if the image is not a clothing item
-            if (!productData.success && productData.error) {
+            if (!productData?.success && productData?.error) {
               console.warn(`Product ${index + 1} is not a clothing item:`, productData.error);
-              toast({
-                title: `Produto ${index + 1} - Imagem Inválida`,
-                description: productData.error,
-                variant: "destructive",
-              });
+              setInvalidImageMessage(productData.error);
               return null; // Stop analysis for this product
             }
 
@@ -337,6 +334,61 @@ export default function Trends() {
                   <p className="text-xs text-center text-muted-foreground">
                     Isso pode levar alguns instantes...
                   </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Invalid Image Overlay */}
+      <AnimatePresence>
+        {invalidImageMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-background/90 backdrop-blur-sm z-50 flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-card border-2 border-destructive/30 rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl animate-enter"
+            >
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <ImageOff className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold">Análise cancelada para este produto</h3>
+                    <p className="text-sm text-muted-foreground">
+                      A imagem enviada não parece ser de uma peça de roupa. A análise deste produto foi interrompida, mas a análise geral de tendências foi concluída.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+                  {invalidImageMessage}
+                </div>
+
+                <div className="flex flex-col gap-2 text-sm text-muted-foreground">
+                  <p className="font-medium">Envie imagens que sigam estas orientações:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>Foto focada apenas na peça de roupa ou acessório</li>
+                    <li>Fundo simples, sem pessoas usando a peça</li>
+                    <li>Boa iluminação e peça totalmente visível</li>
+                  </ul>
+                </div>
+
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setInvalidImageMessage(null)}
+                  >
+                    Entendi
+                  </Button>
                 </div>
               </div>
             </motion.div>
