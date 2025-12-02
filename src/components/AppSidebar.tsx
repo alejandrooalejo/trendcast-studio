@@ -16,21 +16,29 @@ const navigationItems = [
     title: "Tendências", 
     url: "/", 
     icon: TrendingUp,
+    gradient: "from-pink-400 via-rose-400 to-orange-400",
+    bgGradient: "from-pink-500/10 to-orange-500/10"
   },
   { 
     title: "Análises", 
     url: "/analysis", 
     icon: FileText,
+    gradient: "from-blue-400 via-cyan-400 to-teal-400",
+    bgGradient: "from-blue-500/10 to-teal-500/10"
   },
   { 
     title: "Biblioteca", 
     url: "/library", 
     icon: Library,
+    gradient: "from-purple-400 via-violet-400 to-indigo-400",
+    bgGradient: "from-purple-500/10 to-indigo-500/10"
   },
   { 
     title: "Configurações", 
     url: "/settings", 
     icon: Settings,
+    gradient: "from-emerald-400 via-green-400 to-lime-400",
+    bgGradient: "from-emerald-500/10 to-lime-500/10"
   },
 ];
 
@@ -42,14 +50,13 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border bg-card w-60">
-      <SidebarContent className="p-5">
-        {/* Header */}
-        <div className="mb-8 px-2">
-          <h2 className="text-xl font-display font-semibold text-foreground tracking-tight">
+    <Sidebar className="border-r border-border bg-background w-64">
+      <SidebarContent className="p-6">
+        {/* Header da Sidebar */}
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-foreground">
             FashionAI
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Inteligência de Moda</p>
         </div>
 
         <SidebarGroup>
@@ -66,15 +73,15 @@ export function AppSidebar() {
                         className="w-full"
                       >
                         <div className={`
-                          flex items-center gap-3 w-full px-3 py-2.5 rounded-lg transition-all duration-200
+                          flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-colors
                           ${active 
-                            ? 'bg-primary text-primary-foreground shadow-sm' 
-                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                            ? 'bg-muted text-foreground' 
+                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                           }
                         `}>
                           <item.icon 
-                            className="h-[18px] w-[18px] flex-shrink-0"
-                            strokeWidth={active ? 2 : 1.5}
+                            className="h-5 w-5 flex-shrink-0"
+                            strokeWidth={1.5}
                           />
                           <span className="text-sm font-medium">
                             {item.title}
