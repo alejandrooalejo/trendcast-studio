@@ -4,13 +4,43 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, Sparkles, ImageOff, Clock, Calendar, TrendingUp as TrendingUpIcon, Trash2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { 
+  ExternalLink, 
+  Target, 
+  CheckCircle2, 
+  AlertCircle, 
+  AlertTriangle, 
+  Plus, 
+  ImageOff, 
+  Clock, 
+  Calendar, 
+  TrendingUp, 
+  Trash2,
+  Loader2,
+  MoreHorizontal
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Results() {
   const navigate = useNavigate();
@@ -54,10 +84,8 @@ export default function Results() {
 
       if (analysesError) throw analysesError;
 
-      // Verificar se há mais resultados
       setHasMore((analysesData || []).length === ITEMS_PER_PAGE);
 
-      // Otimização: buscar produtos apenas das análises carregadas
       const analysisIds = (analysesData || []).map(a => a.id);
       
       if (analysisIds.length === 0) {
@@ -74,7 +102,6 @@ export default function Results() {
 
       if (productsError) console.error("Error fetching products:", productsError);
 
-      // Agrupar produtos por análise
       const productsByAnalysis = (allProducts || []).reduce((acc, product) => {
         if (!acc[product.analysis_id]) {
           acc[product.analysis_id] = [];
@@ -83,7 +110,6 @@ export default function Results() {
         return acc;
       }, {} as Record<string, any[]>);
 
-      // Montar análises com produtos
       const analysesWithProducts = (analysesData || []).map(analysis => ({
         ...analysis,
         products: productsByAnalysis[analysis.id] || [],
@@ -107,22 +133,11 @@ export default function Results() {
     }
   };
 
-  const getTrendIcon = (riskLevel: string) => {
-    const riskLower = riskLevel?.toLowerCase();
-    if (riskLower === "baixo" || riskLower === "low") {
-      return <CheckCircle2 className="h-5 w-5 text-emerald-500" />;
-    }
-    if (riskLower === "alto" || riskLower === "high") {
-      return <AlertTriangle className="h-5 w-5 text-rose-400" />;
-    }
-    return <AlertCircle className="h-5 w-5 text-amber-500" />;
-  };
-
-  const getRiskBadge = (risk: string) => {
+  const getRiskBadgeVariant = (risk: string) => {
     const riskLower = risk?.toLowerCase();
     if (riskLower === "alto" || riskLower === "high") return "destructive";
     if (riskLower === "baixo" || riskLower === "low") return "secondary";
-    return "default";
+    return "outline";
   };
 
   const getRiskLabel = (risk: string) => {
@@ -130,45 +145,11 @@ export default function Results() {
     if (riskLower === "alto" || riskLower === "high") return "Alto Risco";
     if (riskLower === "baixo" || riskLower === "low") return "Baixo Risco";
     if (riskLower === "medio" || riskLower === "medium" || riskLower === "médio") return "Risco Moderado";
-    return "Risco Desconhecido";
+    return "—";
   };
 
-  const getTimeAgoLabel = (dateString: string) => {
+  const handleDeleteAnalysis = async (analysisId: string) => {
     try {
-      const date = new Date(dateString);
-      const daysAgo = differenceInDays(new Date(), date);
-      
-      if (daysAgo === 0) return "Hoje";
-      if (daysAgo === 1) return "Ontem";
-      if (daysAgo < 7) return `Há ${daysAgo} dias`;
-      if (daysAgo < 30) return `Há ${Math.floor(daysAgo / 7)} semanas`;
-      if (daysAgo < 365) return `Há ${Math.floor(daysAgo / 30)} meses`;
-      return `Há ${Math.floor(daysAgo / 365)} anos`;
-    } catch {
-      return "Data inválida";
-    }
-  };
-
-  const getTimeFreshnessColor = (dateString: string) => {
-    try {
-      const daysAgo = differenceInDays(new Date(), new Date(dateString));
-      if (daysAgo < 7) return "text-emerald-600 bg-emerald-50 border-emerald-200";
-      if (daysAgo < 30) return "text-amber-600 bg-amber-50 border-amber-200";
-      return "text-slate-600 bg-slate-50 border-slate-200";
-    } catch {
-      return "text-slate-600 bg-slate-50 border-slate-200";
-    }
-  };
-
-  const handleDeleteAnalysis = async (analysisId: string, collectionName: string) => {
-    const confirmed = window.confirm(
-      `Tem certeza que deseja excluir a análise "${collectionName}"? Esta ação não pode ser desfeita.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      // Deletar análise (produtos relacionados serão deletados automaticamente por cascade)
       const { error } = await supabase
         .from("analyses")
         .delete()
@@ -176,7 +157,6 @@ export default function Results() {
 
       if (error) throw error;
 
-      // Atualizar estado local
       setAnalyses(analyses.filter(a => a.id !== analysisId));
 
       toast({
@@ -196,22 +176,9 @@ export default function Results() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[500px]">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="text-center space-y-4"
-          >
-            <div className="relative">
-              <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
-              <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-foreground">Carregando análises</p>
-              <p className="text-sm text-muted-foreground mt-1">Aguarde um momento...</p>
-            </div>
-          </motion.div>
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="mt-4 text-sm text-muted-foreground">Carregando análises...</p>
         </div>
       </DashboardLayout>
     );
@@ -220,27 +187,18 @@ export default function Results() {
   if (analyses.length === 0) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[500px] px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="text-center space-y-6 max-w-md"
-          >
-            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center">
-              <ImageOff className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-foreground">Nenhuma análise encontrada</h2>
-              <p className="text-muted-foreground">
-                Você ainda não criou nenhuma análise. Comece criando uma nova análise de tendências.
-              </p>
-            </div>
-            <Button onClick={() => navigate("/trends")} size="lg" className="mt-4">
-              <Sparkles className="mr-2 h-5 w-5" />
-              Criar Nova Análise
-            </Button>
-          </motion.div>
+        <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+            <ImageOff className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h2 className="mt-6 text-xl font-semibold">Nenhuma análise encontrada</h2>
+          <p className="mt-2 text-center text-sm text-muted-foreground max-w-sm">
+            Você ainda não criou nenhuma análise. Comece criando uma nova análise de tendências.
+          </p>
+          <Button onClick={() => navigate("/")} className="mt-6">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Análise
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -249,240 +207,183 @@ export default function Results() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-display font-semibold text-foreground">Resultados das Análises</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <p className="text-muted-foreground">{analyses.length} análise(s) encontrada(s)</p>
-              {analyses.length > 0 && (
-                <>
-                  <span className="text-muted-foreground">•</span>
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <TrendingUpIcon className="h-3.5 w-3.5" />
-                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 7).length} recentes
-                  </div>
-                </>
-              )}
-            </div>
+            <h1 className="text-2xl font-semibold tracking-tight">Resultados</h1>
+            <p className="text-sm text-muted-foreground">
+              {analyses.length} análise(s) encontrada(s)
+            </p>
           </div>
-          
-          <Button onClick={() => navigate("/trends")} size="lg">
-            <Sparkles className="mr-2 h-5 w-5" />
+          <Button onClick={() => navigate("/")}>
+            <Plus className="mr-2 h-4 w-4" />
             Nova Análise
           </Button>
         </div>
 
-        <div className="space-y-8">
-          {/* Timeline Summary */}
-          {analyses.length > 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20"
-            >
-              <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <TrendingUpIcon className="h-5 w-5 text-primary" />
+        {/* Stats */}
+        {analyses.length > 1 && (
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Últimos 7 dias
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 7).length}
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-foreground mb-1">Linha do Tempo</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Suas análises ao longo do tempo
-                  </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Últimos 30 dias
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 30).length}
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Clock className="h-4 w-4 text-emerald-600" />
-                    <span className="text-xs text-muted-foreground">Últimos 7 dias</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 7).length}
-                  </p>
-                </div>
-                
-                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="h-4 w-4 text-amber-600" />
-                    <span className="text-xs text-muted-foreground">Últimos 30 dias</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {analyses.filter(a => differenceInDays(new Date(), new Date(a.created_at)) < 30).length}
-                  </p>
-                </div>
-                
-                <div className="bg-background/50 rounded-lg p-4 border border-border/50">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Target className="h-4 w-4 text-primary" />
-                    <span className="text-xs text-muted-foreground">Total</span>
-                  </div>
-                  <p className="text-2xl font-bold text-foreground">{analyses.length}</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Total
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{analyses.length}</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
+        {/* Analysis List */}
+        <div className="space-y-4">
           {analyses.map((analysis) => (
-            <Card key={analysis.id} className="border-2">
-              <CardHeader>
-                <div className="flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="font-display">{analysis.collection_name}</CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
-                      <span>{analysis.collection_type}</span>
-                      <span>•</span>
-                      <span>{analysis.products.length} produto(s) analisado(s)</span>
+            <Card key={analysis.id}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg">{analysis.collection_name}</CardTitle>
+                    <CardDescription>
+                      {analysis.collection_type} • {analysis.products.length} produto(s)
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={`text-xs border ${getTimeFreshnessColor(analysis.created_at)}`}>
-                      <Clock className="h-3 w-3 mr-1" />
-                      {getTimeAgoLabel(analysis.created_at)}
-                    </Badge>
                     <Badge variant="outline" className="text-xs">
-                      <Calendar className="h-3 w-3 mr-1" />
                       {format(new Date(analysis.created_at), "dd/MM/yyyy", { locale: ptBR })}
                     </Badge>
                     {differenceInDays(new Date(), new Date(analysis.created_at)) < 2 && (
-                      <Badge className="text-xs bg-emerald-500 hover:bg-emerald-600">
-                        <Sparkles className="h-3 w-3 mr-1" />
-                        Novo
-                      </Badge>
+                      <Badge className="text-xs">Novo</Badge>
                     )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteAnalysis(analysis.id, analysis.collection_name);
-                      }}
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir análise?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir "{analysis.collection_name}"? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteAnalysis(analysis.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-4">
-                  {analysis.products.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhum produto analisado ainda</p>
-                  ) : (
-                    analysis.products.map((product: any, index: number) => (
-                      <motion.div
+                {analysis.products.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhum produto analisado</p>
+                ) : (
+                  <div className="space-y-3">
+                    {analysis.products.map((product: any, index: number) => (
+                      <div
                         key={product.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: index * 0.1 }}
-                        className="border rounded-xl overflow-hidden hover:shadow-md transition-all duration-300 bg-card cursor-pointer"
                         onClick={() => navigate(`/product-details?id=${product.id}`)}
+                        className="flex items-center gap-4 p-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
                       >
-                        <div className="flex gap-4 p-5">
-                          {product.image_url && (
-                            <div className="w-24 h-24 bg-background rounded-lg flex-shrink-0 overflow-hidden border border-border">
-                              <img 
-                                src={product.image_url} 
-                                alt={product.sku || "Produto"} 
-                                className="w-full h-full object-cover"
-                              />
+                        {product.image_url && (
+                          <div className="h-16 w-16 rounded-md overflow-hidden bg-muted flex-shrink-0">
+                            <img 
+                              src={product.image_url} 
+                              alt={product.sku || "Produto"} 
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">
+                            {product.sku || `Produto ${index + 1}`}
+                          </p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {product.category || "Sem categoria"}
+                            {product.color && ` • ${product.color}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          {product.demand_score && (
+                            <div className="text-right">
+                              <p className="text-sm text-muted-foreground">Score</p>
+                              <p className="font-semibold">{product.demand_score}</p>
                             </div>
                           )}
-
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <h3 className="text-lg font-semibold font-display">
-                                  {product.sku || `Produto ${index + 1}`}
-                                </h3>
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  {product.category || "Sem categoria"}
-                                  {product.color && ` • ${product.color}`}
-                                </p>
-                              </div>
-                              {product.risk_level && (
-                                <Badge 
-                                  variant={getRiskBadge(product.risk_level)}
-                                  className="text-xs"
-                                >
-                                  {getTrendIcon(product.risk_level)}
-                                  <span className="ml-1">{getRiskLabel(product.risk_level)}</span>
-                                </Badge>
-                              )}
-                            </div>
-
-                            {product.demand_score && (
-                              <div className="flex items-center gap-3">
-                                <div className="flex items-center gap-2">
-                                  <Target className="h-4 w-4 text-primary" />
-                                  <span className="text-sm font-medium">Score:</span>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                                      <div 
-                                        className="h-full transition-all bg-primary"
-                                        style={{ width: `${product.demand_score}%` }}
-                                      />
-                                    </div>
-                                    <span className="text-sm font-bold font-display min-w-[3ch]">
-                                      {product.demand_score}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {product.estimated_price && (
-                              <div className="pt-2">
-                                <div className="text-center p-3 bg-gradient-to-br from-primary/10 to-transparent rounded-lg border border-primary/20">
-                                  <p className="text-xs text-muted-foreground mb-1">Valor Médio de Mercado</p>
-                                  <p className="text-xl font-bold font-display text-primary">R$ {product.estimated_price.toFixed(2)}</p>
-                                </div>
-                              </div>
-                            )}
-
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              className="w-full"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/product-details?id=${product.id}`);
-                              }}
-                            >
-                              Ver Detalhes
-                              <ExternalLink className="ml-2 h-4 w-4" />
-                            </Button>
-                          </div>
+                          {product.risk_level && (
+                            <Badge variant={getRiskBadgeVariant(product.risk_level)}>
+                              {getRiskLabel(product.risk_level)}
+                            </Badge>
+                          )}
                         </div>
-                      </motion.div>
-                    ))
-                  )}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
         </div>
-        
-        {/* Botão Carregar Mais */}
-        {hasMore && analyses.length > 0 && (
-          <div className="flex justify-center mt-8">
+
+        {/* Load More */}
+        {hasMore && (
+          <div className="flex justify-center">
             <Button
+              variant="outline"
               onClick={() => fetchAnalyses(true)}
               disabled={loadingMore}
-              size="lg"
-              variant="outline"
             >
-              {loadingMore ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2"></div>
-                  Carregando...
-                </>
-              ) : (
-                "Carregar Mais Análises"
-              )}
+              {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Carregar mais
             </Button>
           </div>
         )}

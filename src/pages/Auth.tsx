@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
@@ -23,14 +23,12 @@ export default function Auth() {
   const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/");
@@ -131,16 +129,17 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-accent/5 to-background p-4">
-      <Card className="w-full max-w-md border-2">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Sparkles className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-display font-semibold">FashionAI</h1>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <Sparkles className="h-5 w-5" />
+            </div>
           </div>
-          <CardTitle className="text-2xl font-display">Bem-vindo</CardTitle>
+          <CardTitle className="text-2xl font-semibold tracking-tight">FashionAI</CardTitle>
           <CardDescription>
-            Entre ou crie sua conta para começar suas análises de tendências
+            Entre ou crie sua conta para começar
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -150,7 +149,7 @@ export default function Auth() {
               <TabsTrigger value="signup">Cadastrar</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="signin">
+            <TabsContent value="signin" className="mt-4">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
@@ -177,12 +176,13 @@ export default function Auth() {
                   {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Entrando..." : "Entrar"}
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Entrar
                 </Button>
               </form>
             </TabsContent>
 
-            <TabsContent value="signup">
+            <TabsContent value="signup" className="mt-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
@@ -210,7 +210,8 @@ export default function Auth() {
                   <p className="text-xs text-muted-foreground">Mínimo de 6 caracteres</p>
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Cadastrando..." : "Criar Conta"}
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Criar Conta
                 </Button>
               </form>
             </TabsContent>
