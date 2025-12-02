@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Target, TrendingUp, Lightbulb, AlertCircle, Clock, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Eye, Target, TrendingUp, Link2, Lightbulb, CheckCircle2, AlertCircle, AlertTriangle, BarChart3, TrendingDown, ArrowUpCircle, Instagram, Search, ShoppingBag, TrendingUpIcon, Globe, Clock, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
 import { SimilarProducts } from "@/components/SimilarProducts";
 
 export default function ProductDetails() {
@@ -37,6 +36,7 @@ export default function ProductDetails() {
 
       if (error) throw error;
       
+      // Se não encontrar o produto, apenas redireciona silenciosamente
       if (!data) {
         setTimeout(() => navigate("/results"), 2000);
         return;
@@ -56,11 +56,22 @@ export default function ProductDetails() {
     }
   };
 
-  const getRiskBadgeVariant = (risk: string) => {
+  const getTrendIcon = (riskLevel: string) => {
+    const riskLower = riskLevel?.toLowerCase();
+    if (riskLower === "baixo" || riskLower === "low") {
+      return <CheckCircle2 className="h-5 w-5 text-white" />;
+    }
+    if (riskLower === "alto" || riskLower === "high") {
+      return <AlertTriangle className="h-5 w-5 text-white" />;
+    }
+    return <AlertCircle className="h-5 w-5 text-white" />;
+  };
+
+  const getRiskBadge = (risk: string) => {
     const riskLower = risk?.toLowerCase();
     if (riskLower === "alto" || riskLower === "high") return "destructive";
     if (riskLower === "baixo" || riskLower === "low") return "default";
-    return "secondary";
+    return "outline";
   };
 
   const getRiskLabel = (risk: string) => {
@@ -68,15 +79,84 @@ export default function ProductDetails() {
     if (riskLower === "alto" || riskLower === "high") return "Alto Risco";
     if (riskLower === "baixo" || riskLower === "low") return "Baixo Risco";
     if (riskLower === "medio" || riskLower === "medium" || riskLower === "médio") return "Risco Moderado";
-    return "—";
+    return "Risco Desconhecido";
+  };
+
+  const getSourceIcon = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram') || name.includes('tiktok') || name.includes('social')) {
+      return <Instagram className="h-4 w-4" />;
+    }
+    if (name.includes('google') || name.includes('trends')) {
+      return <Search className="h-4 w-4" />;
+    }
+    if (name.includes('pinterest')) {
+      return <Globe className="h-4 w-4" />;
+    }
+    if (name.includes('zara') || name.includes('h&m') || name.includes('shein') || name.includes('renner') || name.includes('ecommerce') || name.includes('e-commerce')) {
+      return <ShoppingBag className="h-4 w-4" />;
+    }
+    if (name.includes('wgsn') || name.includes('vogue') || name.includes('fashion') || name.includes('pantone')) {
+      return <TrendingUpIcon className="h-4 w-4" />;
+    }
+    return <Link2 className="h-4 w-4" />;
+  };
+
+  const getSourceColor = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram') || name.includes('tiktok')) {
+      return 'from-pink-500/10 to-purple-500/10 border-pink-500/30 text-pink-700';
+    }
+    if (name.includes('google') || name.includes('trends')) {
+      return 'from-blue-500/10 to-cyan-500/10 border-blue-500/30 text-blue-700';
+    }
+    if (name.includes('pinterest')) {
+      return 'from-red-500/10 to-rose-500/10 border-red-500/30 text-red-700';
+    }
+    if (name.includes('zara') || name.includes('h&m') || name.includes('shein') || name.includes('renner')) {
+      return 'from-emerald-500/10 to-green-500/10 border-emerald-500/30 text-emerald-700';
+    }
+    if (name.includes('wgsn') || name.includes('vogue') || name.includes('fashion') || name.includes('pantone')) {
+      return 'from-violet-500/10 to-purple-500/10 border-violet-500/30 text-violet-700';
+    }
+    return 'from-slate-500/10 to-gray-500/10 border-slate-500/30 text-slate-700';
+  };
+
+  const getSourceDescription = (sourceName: string) => {
+    const name = sourceName.toLowerCase();
+    if (name.includes('instagram')) return 'Rede social - Tendências visuais';
+    if (name.includes('tiktok')) return 'Rede social - Vídeos virais';
+    if (name.includes('google') && name.includes('trends')) return 'Mecanismo de busca - Volume de pesquisas';
+    if (name.includes('pinterest')) return 'Plataforma visual - Pins e boards';
+    if (name.includes('zara')) return 'E-commerce - Fast fashion';
+    if (name.includes('h&m')) return 'E-commerce - Moda acessível';
+    if (name.includes('shein')) return 'E-commerce - Moda rápida online';
+    if (name.includes('renner')) return 'E-commerce - Varejo brasileiro';
+    if (name.includes('wgsn')) return 'Agência - Previsão de tendências';
+    if (name.includes('vogue')) return 'Mídia - Revista de moda';
+    if (name.includes('pantone')) return 'Instituto - Cores e padrões';
+    return 'Fonte de dados de moda';
   };
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <p className="mt-4 text-sm text-muted-foreground">Carregando detalhes...</p>
+        <div className="flex flex-col items-center justify-center min-h-[500px]">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="text-center space-y-4"
+          >
+            <div className="relative">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary/20 border-t-primary mx-auto"></div>
+              <Target className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-pulse" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-foreground">Carregando detalhes</p>
+              <p className="text-sm text-muted-foreground mt-1">Buscando informações do produto...</p>
+            </div>
+          </motion.div>
         </div>
       </DashboardLayout>
     );
@@ -85,317 +165,758 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <DashboardLayout>
-        <div className="flex flex-col items-center justify-center min-h-[400px] px-4">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-            <AlertCircle className="h-10 w-10 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center min-h-[500px] px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-center space-y-6 max-w-md"
+          >
+            <div className="mx-auto w-24 h-24 bg-muted rounded-full flex items-center justify-center">
+              <AlertCircle className="h-12 w-12 text-muted-foreground" />
+            </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-semibold text-foreground">Produto não encontrado</h2>
+                <p className="text-muted-foreground">
+                  O produto que você está procurando não existe ou foi removido.
+                </p>
+              </div>
+              <Button onClick={() => navigate("/results")} size="lg" className="mt-4">
+                <ArrowLeft className="mr-2 h-5 w-5" />
+                Voltar para Resultados
+              </Button>
+            </motion.div>
           </div>
-          <h2 className="mt-6 text-xl font-semibold">Produto não encontrado</h2>
-          <p className="mt-2 text-center text-sm text-muted-foreground max-w-sm">
-            O produto que você está procurando não existe ou foi removido.
-          </p>
-          <Button onClick={() => navigate("/results")} className="mt-6">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para Resultados
-          </Button>
-        </div>
-      </DashboardLayout>
-    );
-  }
+        </DashboardLayout>
+      );
+    }
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate("/results")}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {product.sku || "Detalhes do Produto"}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {product.category || "Sem categoria"}
-              {product.color && ` • ${product.color}`}
-            </p>
-          </div>
-          {product.created_at && (
-            <Badge variant="outline" className="hidden sm:flex">
-              <Calendar className="mr-1 h-3 w-3" />
-              {format(new Date(product.created_at), "dd/MM/yyyy", { locale: ptBR })}
-            </Badge>
-          )}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Product Image & Basic Info */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex gap-6">
-                  {product.image_url && (
-                    <div className="h-40 w-40 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                      <img 
-                        src={product.image_url} 
-                        alt={product.sku || "Produto"} 
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-1 space-y-4">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <h2 className="text-xl font-semibold">{product.sku || "Produto"}</h2>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {product.category || "Sem categoria"}
-                          {product.color && ` • ${product.color}`}
-                          {product.fabric && ` • ${product.fabric}`}
-                        </p>
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/results")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Voltar
+              </Button>
+              <div>
+                <h1 className="text-3xl font-display font-semibold text-foreground">
+                  {product.sku || "Detalhes do Produto"}
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-muted-foreground">Análise completa do produto</p>
+                  {product.created_at && (
+                    <>
+                      <span className="text-muted-foreground">•</span>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" />
+                        {formatDistanceToNow(new Date(product.created_at), { 
+                          addSuffix: true,
+                          locale: ptBR 
+                        })}
                       </div>
-                      {product.risk_level && (
-                        <Badge variant={getRiskBadgeVariant(product.risk_level)}>
-                          {getRiskLabel(product.risk_level)}
-                        </Badge>
-                      )}
-                    </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {product.created_at && (
+              <Badge variant="outline" className="text-sm">
+                <Calendar className="h-3.5 w-3.5 mr-1" />
+                {format(new Date(product.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </Badge>
+            )}
+          </div>
 
-                    {product.analysis_description && (
-                      <p className="text-sm text-muted-foreground">
-                        {product.analysis_description}
-                      </p>
+        {/* Product Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="border rounded-2xl overflow-hidden bg-card shadow-lg"
+        >
+          {/* Product Header */}
+          <div className="flex gap-6 p-6 border-b bg-muted/20">
+            {product.image_url && (
+              <div className="w-40 h-40 bg-background rounded-xl flex-shrink-0 overflow-hidden border-2 border-border shadow-sm">
+                <img 
+                  src={product.image_url} 
+                  alt={product.sku || "Produto"} 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-3xl font-bold font-display">
+                    {product.sku || "Produto"}
+                  </h2>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                    <span>{product.category || "Sem categoria"}</span>
+                    {product.color && (
+                      <>
+                        <span>•</span>
+                        <span>{product.color}</span>
+                      </>
                     )}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                {product.risk_level && (
+                  <Badge 
+                    variant={getRiskBadge(product.risk_level)}
+                    className={`text-sm h-8 px-4 font-semibold ${
+                      product.risk_level?.toLowerCase() === 'alto' || product.risk_level?.toLowerCase() === 'high'
+                        ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-600'
+                        : product.risk_level?.toLowerCase() === 'baixo' || product.risk_level?.toLowerCase() === 'low'
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-amber-500 hover:bg-amber-600 text-white border-amber-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      {getTrendIcon(product.risk_level)}
+                      {getRiskLabel(product.risk_level)}
+                    </div>
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
 
-            {/* Demand Score */}
-            {product.demand_score && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Score de Demanda
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-end gap-2 mb-3">
-                    <span className="text-4xl font-bold">{product.demand_score}</span>
-                    <span className="text-muted-foreground mb-1">/100</span>
+          <div className="p-6 space-y-6">
+            {/* Analysis Description */}
+            {product.analysis_description && (
+              <div className="bg-muted/30 rounded-xl p-5 border border-border/50">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Eye className="h-5 w-5 text-primary" />
                   </div>
-                  <Progress value={product.demand_score} className="h-2" />
-                  {product.score_justification && (
-                    <p className="text-sm text-muted-foreground mt-3">
-                      {product.score_justification}
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-2">Análise Visual</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {product.analysis_description}
                     </p>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                </div>
+              </div>
             )}
 
-            {/* Trend Analysis */}
-            {(product.trend_status || product.reason || product.recommendation) && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Análise de Tendência
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+            {/* Demand Score Section */}
+            {product.demand_score && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-base font-semibold">Score de Demanda</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-5xl font-bold font-display">{product.demand_score}</span>
+                    <span className="text-xl text-muted-foreground">/100</span>
+                  </div>
+                </div>
+                <div className="h-4 bg-muted rounded-full overflow-hidden border border-border">
+                  <motion.div
+                    className="h-full bg-primary transition-colors"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${product.demand_score}%` }}
+                    transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Fashion Trend Analysis Section */}
+            {(product.trend_status || product.trend_level || product.reason || product.related_trend || product.current_usage || product.recommendation) && (
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Análise de Tendência</p>
+                    <p className="text-xs text-muted-foreground">Avaliação Fashion Trend Analyzer</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {/* Status da Tendência */}
                   {product.trend_status && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Status</p>
-                      <Badge variant={product.trend_status.toLowerCase().includes('alta') ? 'default' : 'secondary'}>
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">STATUS DA TENDÊNCIA</span>
+                      </div>
+                      <Badge className={`text-base px-3 py-1 ${
+                        product.trend_status.toLowerCase().includes('em alta') 
+                          ? 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20 hover:bg-emerald-500/20' 
+                          : 'bg-amber-500/10 text-amber-700 border-amber-500/20 hover:bg-amber-500/20'
+                      }`}>
+                        {product.trend_status.toLowerCase().includes('em alta') ? (
+                          <TrendingUp className="h-4 w-4 mr-1" />
+                        ) : (
+                          <TrendingDown className="h-4 w-4 mr-1" />
+                        )}
                         {product.trend_status}
                       </Badge>
                     </div>
                   )}
 
+                  {/* Grau de Tendência */}
                   {product.trend_level && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Nível</p>
-                      <p className="font-medium">{product.trend_level}</p>
-                    </div>
-                  )}
-
-                  {product.reason && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Motivo</p>
-                      <p className="text-sm">{product.reason}</p>
-                    </div>
-                  )}
-
-                  {product.related_trend && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Tendência Relacionada</p>
-                      <Badge variant="outline">{product.related_trend}</Badge>
-                    </div>
-                  )}
-
-                  {product.current_usage && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Uso Atual</p>
-                      <p className="text-sm">{product.current_usage}</p>
-                    </div>
-                  )}
-
-                  {product.recommendation && (
-                    <>
-                      <Separator />
-                      <div className="bg-muted/50 rounded-lg p-4">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Lightbulb className="h-4 w-4 text-primary" />
-                          <p className="text-xs font-medium uppercase">Recomendação</p>
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BarChart3 className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">GRAU DE TENDÊNCIA</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {[1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className={`h-6 w-2 rounded-full ${
+                                (product.trend_level === 'Alto' && i <= 3) ||
+                                (product.trend_level === 'Médio' && i <= 2) ||
+                                (product.trend_level === 'Baixo' && i <= 1)
+                                  ? 'bg-primary'
+                                  : 'bg-muted'
+                              }`}
+                            />
+                          ))}
                         </div>
-                        <p className="text-sm">{product.recommendation}</p>
+                        <span className="text-lg font-bold font-display">{product.trend_level}</span>
                       </div>
-                    </>
+                    </div>
                   )}
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Financial Projections */}
-            {(product.estimated_price || product.estimated_production_cost || product.projected_revenue) && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Projeções Financeiras</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    {product.estimated_price && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Preço Estimado</p>
-                        <p className="text-lg font-semibold">
-                          R$ {product.estimated_price.toFixed(2)}
-                        </p>
+                  {/* Motivo */}
+                  {product.reason && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">MOTIVO</span>
                       </div>
-                    )}
-                    {product.estimated_production_cost && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Custo Produção</p>
-                        <p className="text-lg font-semibold">
-                          R$ {product.estimated_production_cost.toFixed(2)}
-                        </p>
-                      </div>
-                    )}
-                    {product.projected_revenue && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Receita Projetada</p>
-                        <p className="text-lg font-semibold">
-                          R$ {product.projected_revenue.toFixed(2)}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      <p className="text-sm text-foreground leading-relaxed">{product.reason}</p>
+                    </div>
+                  )}
 
-            {/* Production Recommendations */}
-            {(product.recommended_quantity || product.target_audience_size) && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Recomendações de Produção</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    {product.recommended_quantity && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Quantidade Recomendada</p>
-                        <p className="text-lg font-semibold">
-                          {product.recommended_quantity.toLocaleString()} unidades
-                        </p>
+                  {/* Tendência Relacionada */}
+                  {product.related_trend && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <ArrowUpCircle className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">TENDÊNCIA RELACIONADA</span>
                       </div>
-                    )}
-                    {product.target_audience_size && (
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Público Alvo</p>
-                        <p className="text-lg font-semibold">
-                          {product.target_audience_size.toLocaleString()} pessoas
-                        </p>
+                      <Badge variant="outline" className="text-sm">
+                        {product.related_trend}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {/* Uso Atual */}
+                  {product.current_usage && (
+                    <div className="p-4 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-muted-foreground">USO ATUAL</span>
                       </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                      <p className="text-sm text-foreground leading-relaxed">{product.current_usage}</p>
+                    </div>
+                  )}
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Temporal Info */}
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Informações Temporais
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {product.created_at && (
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Analisado em</p>
-                    <p className="font-medium">
-                      {format(new Date(product.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(product.created_at), { 
-                        addSuffix: true,
-                        locale: ptBR 
-                      })}
-                    </p>
-                  </div>
-                )}
-
-                <Separator />
-
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase mb-1">Validade Estimada</p>
-                  <p className="font-medium">
-                    {product.demand_score >= 70 
-                      ? '6-12 meses' 
-                      : product.demand_score >= 50 
-                      ? '3-6 meses' 
-                      : '1-3 meses'}
-                  </p>
+                  {/* Recomendação */}
+                  {product.recommendation && (
+                    <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Lightbulb className="h-4 w-4 text-primary" />
+                        <span className="text-xs font-semibold text-primary">RECOMENDAÇÃO</span>
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">{product.recommendation}</p>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            )}
 
-            {/* Sources */}
-            {product.sources && Array.isArray(product.sources) && product.sources.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base">Fontes</CardTitle>
-                  <CardDescription>{product.sources.length} fonte(s) analisada(s)</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {product.sources.map((source: any, index: number) => (
-                      <div key={index} className="flex items-center gap-2 text-sm">
-                        <div className="h-2 w-2 rounded-full bg-primary" />
-                        <span>{typeof source === 'string' ? source : source.name || 'Fonte'}</span>
+            {/* Trend Indicators & Temporal Data Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+              {/* Temporal Data Card */}
+              <div className="bg-gradient-to-br from-blue-500/10 to-transparent rounded-xl p-5 border border-blue-500/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Clock className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Dados Temporais</p>
+                    <p className="text-xs text-muted-foreground">Análise de período e duração</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {product.created_at && (
+                    <div className="p-3 bg-background/60 rounded-lg border border-border/50">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">Data da Análise</span>
                       </div>
+                      <p className="text-sm font-semibold">
+                        {format(new Date(product.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(product.created_at), { 
+                          addSuffix: true,
+                          locale: ptBR 
+                        })}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="p-3 bg-background/60 rounded-lg border border-border/50">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">Validade Estimada</span>
+                    </div>
+                    <p className="text-sm font-semibold">
+                      {product.demand_score >= 70 
+                        ? '6-12 meses' 
+                        : product.demand_score >= 50 
+                        ? '3-6 meses' 
+                        : '1-3 meses'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Tendência {product.demand_score >= 60 ? 'de longa duração' : 'sazonal'}
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5 text-blue-600" />
+                      <span className="text-xs font-semibold text-blue-700">
+                        Melhor período: {
+                          new Date().getMonth() >= 2 && new Date().getMonth() <= 5
+                            ? 'Outono/Inverno'
+                            : 'Primavera/Verão'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Market Momentum Indicator */}
+            <div className="bg-gradient-to-br from-violet-500/10 to-transparent rounded-xl p-5 border border-violet-500/20">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 bg-violet-500/10 rounded-lg">
+                  <BarChart3 className="h-5 w-5 text-violet-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground mb-1">Momentum de Mercado</p>
+                  <p className="text-xs text-muted-foreground">Análise de força e penetração</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.demand_score >= 70 ? 'Alta' : product.demand_score >= 50 ? 'Média' : 'Baixa'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Força da Tendência</div>
+                  <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-violet-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${product.demand_score || 0}%` }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.sources?.length || 0}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Fontes Validadas</div>
+                  <div className="mt-2 flex justify-center gap-1">
+                    {Array.from({ length: Math.min(product.sources?.length || 0, 5) }).map((_, i) => (
+                      <div key={i} className="h-2 w-2 rounded-full bg-violet-500" />
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                <div className="text-center p-4 bg-background/60 rounded-lg border border-border/50">
+                  <div className="text-3xl font-bold text-violet-600 mb-1">
+                    {product.target_audience_size 
+                      ? `${(product.target_audience_size / 1000000).toFixed(1)}M` 
+                      : 'N/A'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Público Potencial</div>
+                  <div className="mt-2">
+                    <Badge variant="outline" className="text-xs">
+                      {product.target_audience_size 
+                        ? product.target_audience_size >= 5000000 ? 'Muito Alto' : 
+                          product.target_audience_size >= 2000000 ? 'Alto' : 'Médio'
+                        : 'Não calculado'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-violet-500/5 rounded-lg border border-violet-500/20">
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  <strong className="text-foreground">Interpretação:</strong> O momentum atual indica uma tendência com 
+                  {product.demand_score >= 70 ? ' forte penetração de mercado e alta adoção.' : 
+                   product.demand_score >= 50 ? ' penetração moderada e crescimento consistente.' : 
+                   ' penetração inicial ou em fase de teste de mercado.'}
+                </p>
+              </div>
+            </div>
+
+            {/* Scoring Breakdown Section */}
+            {product.insights?.scoring_breakdown && (
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-5 border border-primary/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Breakdown do Score</p>
+                    <p className="text-xs text-muted-foreground">{product.insights.scoring_breakdown.score_interpretation}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {['color_component', 'fabric_component', 'style_component'].map((component) => {
+                    const data = product.insights.scoring_breakdown[component];
+                    if (!data) return null;
+                    
+                    const componentName = component === 'color_component' ? 'Cor' : 
+                                        component === 'fabric_component' ? 'Tecido' : 'Modelagem';
+                    
+                    return (
+                      <motion.div
+                        key={component}
+                        className="bg-background/60 rounded-lg p-4 border border-border/50"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-semibold text-foreground">{componentName}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{data.weight}% do total</span>
+                            <Badge variant="outline" className="text-xs">
+                              {data.weighted_score.toFixed(1)} pts
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden mb-2">
+                          <motion.div
+                            className="h-full bg-primary"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${data.raw_score}%` }}
+                            transition={{ duration: 0.8, delay: 0.2 }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{data.explanation}</p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Confidence Levels Section */}
+            {product.insights?.confidence_levels && (
+              <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Níveis de Confiança</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Object.entries(product.insights.confidence_levels).map(([key, value]: [string, any]) => {
+                    if (key === 'overall_confidence') return null;
+                    
+                    const label = key === 'color_detection' ? 'Detecção de Cor' :
+                                 key === 'fabric_detection' ? 'Detecção de Tecido' :
+                                 key === 'style_detection' ? 'Detecção de Modelagem' : key;
+                    
+                    const confidence = Number(value);
+                    const color = confidence >= 80 ? 'text-emerald-500' :
+                                 confidence >= 60 ? 'text-amber-500' : 'text-rose-500';
+                    
+                    return (
+                      <div key={key} className="bg-background/60 rounded-lg p-3 border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-muted-foreground">{label}</span>
+                          <span className={`text-sm font-bold ${color}`}>{confidence}%</span>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            className={`h-full ${confidence >= 80 ? 'bg-emerald-500' : confidence >= 60 ? 'bg-amber-500' : 'bg-rose-500'}`}
+                            initial={{ width: 0 }}
+                            animate={{ width: `${confidence}%` }}
+                            transition={{ duration: 0.6 }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {product.insights.confidence_levels.overall_confidence && (
+                  <div className="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-foreground">Confiança Geral</span>
+                      <span className="text-xl font-bold text-primary">
+                        {product.insights.confidence_levels.overall_confidence}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Improvements Section */}
+            {product.insights?.improvements && product.insights.improvements.length > 0 && (
+              <div className="bg-gradient-to-br from-amber-500/5 to-transparent rounded-xl p-5 border border-amber-500/20">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-amber-500/10 rounded-lg">
+                    <ArrowUpCircle className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground mb-1">Oportunidades de Melhoria</p>
+                    <p className="text-xs text-muted-foreground">Ajustes que podem aumentar o score de demanda</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {product.insights.improvements.map((improvement: any, idx: number) => (
+                    <motion.div
+                      key={idx}
+                      className="bg-background/60 rounded-lg p-4 border border-border/50"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.1 }}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {improvement.aspect}
+                            </Badge>
+                            {improvement.priority && (
+                              <Badge 
+                                variant={improvement.priority === 'high' ? 'destructive' : 
+                                       improvement.priority === 'medium' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {improvement.priority === 'high' ? 'Alta Prioridade' :
+                                 improvement.priority === 'medium' ? 'Média' : 'Baixa'}
+                              </Badge>
+                            )}
+                            {improvement.implementation_difficulty && (
+                              <span className="text-xs text-muted-foreground">
+                                Dificuldade: {improvement.implementation_difficulty === 'easy' ? 'Fácil' :
+                                            improvement.implementation_difficulty === 'medium' ? 'Média' : 'Difícil'}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <TrendingDown className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">Atual:</span>
+                              <span className="font-medium">{improvement.current}</span>
+                              {improvement.current_score && (
+                                <Badge variant="outline" className="text-xs ml-auto">
+                                  {improvement.current_score} pts
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4 text-emerald-500" />
+                              <span className="text-muted-foreground">Sugerido:</span>
+                              <span className="font-medium text-emerald-600">{improvement.suggested}</span>
+                              {improvement.suggested_score && (
+                                <Badge variant="secondary" className="text-xs ml-auto">
+                                  {improvement.suggested_score} pts
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {improvement.score_increase && improvement.new_total_score && (
+                          <div className="ml-4 text-right">
+                            <div className="text-2xl font-bold text-emerald-600">
+                              +{improvement.score_increase}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Score final: {improvement.new_total_score}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <p className="text-xs text-muted-foreground leading-relaxed mt-3 p-3 bg-muted/30 rounded-lg">
+                        {improvement.reason}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Insights Section - Right after demand score */}
+            {product.insights && product.insights.length > 0 && (
+              <div className="bg-muted/20 rounded-xl p-5 border border-border/50">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Lightbulb className="h-4 w-4 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Principais Insights</p>
+                </div>
+                <div className="grid gap-3">
+                  {product.insights.map((insight: any, idx: number) => (
+                    <motion.div 
+                      key={idx} 
+                      className="bg-background/60 rounded-lg p-4 border border-border/50"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: idx * 0.1 }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          insight.type === "positive" ? "bg-emerald-100/50" :
+                          insight.type === "negative" ? "bg-rose-100/50" :
+                          "bg-primary/5"
+                        }`}>
+                          <Badge 
+                            variant={
+                              insight.type === "positive" ? "secondary" :
+                              insight.type === "negative" ? "destructive" :
+                              "default"
+                            }
+                            className="text-xs h-5 w-5 flex items-center justify-center p-0"
+                          >
+                            {insight.type === "positive" ? "+" : insight.type === "negative" ? "!" : "i"}
+                          </Badge>
+                        </div>
+                        <div className="flex-1 space-y-2">
+                          <p className="font-semibold text-sm text-foreground">{insight.title}</p>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {insight.description}
+                          </p>
+                          {insight.supporting_data && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-muted-foreground">Fonte:</span>
+                              <Badge variant="outline" className="text-xs bg-primary/5 border-primary/20">
+                                {insight.supporting_data}
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+            {/* Sources Section - Enhanced */}
+            {product.sources && product.sources.length > 0 && (
+              <div className="bg-gradient-to-br from-primary/5 to-transparent rounded-xl p-6 border border-primary/20">
+                <div className="flex items-start gap-3 mb-5">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Link2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-foreground mb-1">Fontes de Dados Utilizadas</p>
+                    <p className="text-xs text-muted-foreground">
+                      Esta análise foi baseada em {product.sources.length} fontes confiáveis de dados de moda
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {product.sources.map((sourceData: any, idx: number) => {
+                    const sourceName = typeof sourceData === 'string' ? sourceData : sourceData.source;
+                    const sourceCount = typeof sourceData === 'object' && sourceData.count ? sourceData.count : null;
+                    const colorClass = getSourceColor(sourceName);
+                    const description = getSourceDescription(sourceName);
+                    
+                    return (
+                      <motion.div
+                        key={idx}
+                        className={`bg-gradient-to-br ${colorClass} rounded-lg p-4 border transition-all hover:shadow-md cursor-default`}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2, delay: idx * 0.05 }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5">
+                            {getSourceIcon(sourceName)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-sm mb-0.5 truncate">
+                              {sourceName}
+                            </p>
+                            <p className="text-xs opacity-70 mb-2">
+                              {description}
+                            </p>
+                            {sourceCount && (
+                              <div className="flex items-center gap-1">
+                                <BarChart3 className="h-3 w-3 opacity-70" />
+                                <span className="text-xs font-semibold">
+                                  {sourceCount.toLocaleString()} pontos de dados
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+                
+                <div className="mt-5 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      <strong className="text-foreground">Como funciona:</strong> Cada fonte contribui com dados específicos sobre tendências de cores, tecidos e modelagens. 
+                      O número de pontos de dados indica quantas vezes aquela tendência foi identificada naquela fonte específica.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Similar Products Section */}
+            {product.image_url && product.image_hash && (
+              <SimilarProducts 
+                productId={productId!}
+                imageUrl={product.image_url}
+                imageHash={product.image_hash}
+              />
             )}
           </div>
-        </div>
-
-        {/* Similar Products */}
-        {product.image_url && product.image_hash && (
-          <SimilarProducts 
-            productId={product.id}
-            imageUrl={product.image_url}
-            imageHash={product.image_hash}
-          />
-        )}
+        </motion.div>
       </div>
     </DashboardLayout>
   );
