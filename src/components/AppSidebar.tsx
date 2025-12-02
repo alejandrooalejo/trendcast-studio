@@ -1,6 +1,7 @@
-import { TrendingUp, FileText, Library, Settings } from "lucide-react";
+import { TrendingUp, FileText, Library, Settings, Moon, Sun } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useTheme } from "next-themes";
 import {
   Sidebar,
   SidebarContent,
@@ -44,14 +45,20 @@ const navigationItems = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
+  
   const isActive = (url: string) => {
     if (url === "/") return location.pathname === "/";
     return location.pathname.startsWith(url);
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <Sidebar className="border-r border-border bg-background w-64">
-      <SidebarContent className="p-6">
+      <SidebarContent className="p-6 flex flex-col h-full">
         {/* Header da Sidebar */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground">
@@ -59,7 +66,7 @@ export function AppSidebar() {
           </h2>
         </div>
 
-        <SidebarGroup>
+        <SidebarGroup className="flex-1">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {navigationItems.map((item) => {
@@ -95,6 +102,23 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Theme Toggle */}
+        <div className="pt-4 border-t border-border">
+          <button
+            onClick={toggleTheme}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-colors text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5 flex-shrink-0" strokeWidth={1.5} />
+            ) : (
+              <Moon className="h-5 w-5 flex-shrink-0" strokeWidth={1.5} />
+            )}
+            <span className="text-sm font-medium">
+              {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
+            </span>
+          </button>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
