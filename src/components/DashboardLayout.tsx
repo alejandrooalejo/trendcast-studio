@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppHeader } from "@/components/AppHeader";
 
@@ -10,15 +10,13 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full overflow-hidden">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <AppHeader />
-          <main className="flex-1 p-6 bg-muted/30 overflow-auto">
-            {children}
-          </main>
-        </div>
-      </div>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        <main className="flex-1 overflow-auto p-6">
+          {children}
+        </main>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

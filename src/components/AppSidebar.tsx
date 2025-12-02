@@ -1,4 +1,4 @@
-import { TrendingUp, FileText, Library, Settings } from "lucide-react";
+import { TrendingUp, FileText, Library, Settings, Sparkles } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -9,37 +9,16 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 
 const navigationItems = [
-  { 
-    title: "Tendências", 
-    url: "/", 
-    icon: TrendingUp,
-    gradient: "from-pink-400 via-rose-400 to-orange-400",
-    bgGradient: "from-pink-500/10 to-orange-500/10"
-  },
-  { 
-    title: "Análises", 
-    url: "/analysis", 
-    icon: FileText,
-    gradient: "from-blue-400 via-cyan-400 to-teal-400",
-    bgGradient: "from-blue-500/10 to-teal-500/10"
-  },
-  { 
-    title: "Biblioteca", 
-    url: "/library", 
-    icon: Library,
-    gradient: "from-purple-400 via-violet-400 to-indigo-400",
-    bgGradient: "from-purple-500/10 to-indigo-500/10"
-  },
-  { 
-    title: "Configurações", 
-    url: "/settings", 
-    icon: Settings,
-    gradient: "from-emerald-400 via-green-400 to-lime-400",
-    bgGradient: "from-emerald-500/10 to-lime-500/10"
-  },
+  { title: "Nova Análise", url: "/", icon: TrendingUp },
+  { title: "Resultados", url: "/results", icon: FileText },
+  { title: "Biblioteca", url: "/library", icon: Library },
+  { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -50,43 +29,30 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar className="border-r border-border bg-background w-64">
-      <SidebarContent className="p-6">
-        {/* Header da Sidebar */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-foreground">
-            FashionAI
-          </h2>
+    <Sidebar className="border-r">
+      <SidebarHeader className="p-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Sparkles className="h-4 w-4" />
+          </div>
+          <span className="text-lg font-semibold tracking-tight">FashionAI</span>
         </div>
-
+      </SidebarHeader>
+      
+      <Separator />
+      
+      <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
+            <SidebarMenu>
               {navigationItems.map((item) => {
                 const active = isActive(item.url);
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild className="p-0">
-                      <NavLink 
-                        to={item.url} 
-                        end={item.url === "/"}
-                        className="w-full"
-                      >
-                        <div className={`
-                          flex items-center gap-3 w-full px-3 py-2.5 rounded-md transition-colors
-                          ${active 
-                            ? 'bg-muted text-foreground' 
-                            : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                          }
-                        `}>
-                          <item.icon 
-                            className="h-5 w-5 flex-shrink-0"
-                            strokeWidth={1.5}
-                          />
-                          <span className="text-sm font-medium">
-                            {item.title}
-                          </span>
-                        </div>
+                    <SidebarMenuButton asChild isActive={active}>
+                      <NavLink to={item.url} end={item.url === "/"}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -96,6 +62,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="p-4">
+        <p className="text-xs text-muted-foreground">
+          © 2024 FashionAI
+        </p>
+      </SidebarFooter>
     </Sidebar>
   );
 }
