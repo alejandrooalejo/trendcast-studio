@@ -5,11 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ExternalLink, Target, CheckCircle2, AlertCircle, AlertTriangle, 
+  CheckCircle2, AlertCircle, AlertTriangle, 
   Sparkles, ImageOff, Clock, Calendar, TrendingUp, TrendingDown, 
-  Trash2, Instagram, Hash, ChevronDown, ChevronUp, Star
+  Trash2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInDays } from "date-fns";
@@ -22,7 +22,7 @@ export default function Results() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Record<string, string | null>>({});
+  
   const ITEMS_PER_PAGE = 15;
 
   useEffect(() => {
@@ -105,13 +105,6 @@ export default function Results() {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
-
-  const toggleSection = (analysisId: string, section: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [analysisId]: prev[analysisId] === section ? null : section
-    }));
   };
 
   const getScoreColor = (score: number) => {
@@ -381,8 +374,7 @@ export default function Results() {
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: index * 0.05 }}
-                              className="border rounded-xl overflow-hidden hover:shadow-md transition-all bg-card cursor-pointer"
-                              onClick={() => navigate(`/product-details?id=${product.id}`)}
+                              className="border rounded-xl overflow-hidden hover:shadow-md transition-all bg-card"
                             >
                               <div className="p-4 border-b border-border">
                                 <div className="flex flex-col md:flex-row gap-4">
@@ -506,138 +498,8 @@ export default function Results() {
                                 </div>
                               )}
 
-                              {/* Action */}
-                              <div className="p-4 border-t border-border flex justify-end">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/product-details?id=${product.id}`);
-                                  }}
-                                >
-                                  Ver Análise Completa
-                                  <ExternalLink className="ml-2 h-4 w-4" />
-                                </Button>
-                              </div>
                             </motion.div>
                           ))}
-                        </div>
-
-                        {/* Expandable Sections */}
-                        <div className="space-y-3">
-                          {/* Social Proof Section */}
-                          <div className="bg-card rounded-xl border overflow-hidden">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSection(analysis.id, 'social');
-                              }}
-                              className="w-full p-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Instagram className="w-5 h-5 text-pink-500" />
-                                <span className="font-semibold">Presença em Redes Sociais</span>
-                              </div>
-                              {expandedSections[analysis.id] === 'social' ? (
-                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </button>
-                            
-                            <AnimatePresence>
-                              {expandedSections[analysis.id] === 'social' && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="px-4 pb-4 border-t border-border pt-4">
-                                    <div className="grid grid-cols-3 gap-4 mb-4">
-                                      <div className="text-center p-3 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950/30 dark:to-purple-950/30 rounded-lg">
-                                        <div className="text-2xl font-bold text-pink-600">127K</div>
-                                        <div className="text-xs text-muted-foreground">Instagram</div>
-                                      </div>
-                                      <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">2.3M</div>
-                                        <div className="text-xs text-muted-foreground">TikTok</div>
-                                      </div>
-                                      <div className="text-center p-3 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950/30 dark:to-orange-950/30 rounded-lg">
-                                        <div className="text-2xl font-bold text-red-600">45K</div>
-                                        <div className="text-xs text-muted-foreground">Pinterest</div>
-                                      </div>
-                                    </div>
-                                    <div>
-                                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-                                        <Hash className="w-4 h-4 text-blue-500" />
-                                        Hashtags em Alta
-                                      </h4>
-                                      <div className="flex flex-wrap gap-2">
-                                        {["#streetwear2024", "#fashiontrends", "#sustainablefashion", "#modabrasileira"].map((tag, idx) => (
-                                          <span key={idx} className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-medium">
-                                            {tag}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
-
-                          {/* Target Audience Section */}
-                          <div className="bg-card rounded-xl border overflow-hidden">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleSection(analysis.id, 'audience');
-                              }}
-                              className="w-full p-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Target className="w-5 h-5 text-primary" />
-                                <span className="font-semibold">Público-Alvo Recomendado</span>
-                              </div>
-                              {expandedSections[analysis.id] === 'audience' ? (
-                                <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </button>
-                            
-                            <AnimatePresence>
-                              {expandedSections[analysis.id] === 'audience' && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: "auto", opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="px-4 pb-4 border-t border-border pt-4">
-                                    <div className="grid grid-cols-3 gap-4">
-                                      <div className="text-center p-3 bg-primary/5 rounded-lg">
-                                        <div className="text-lg font-bold text-primary">18-35</div>
-                                        <div className="text-xs text-muted-foreground">Faixa Etária</div>
-                                      </div>
-                                      <div className="text-center p-3 bg-secondary rounded-lg">
-                                        <div className="text-sm font-bold">Casual Urbano</div>
-                                        <div className="text-xs text-muted-foreground">Estilo</div>
-                                      </div>
-                                      <div className="text-center p-3 bg-accent rounded-lg">
-                                        <div className="text-sm font-bold">R$ 89-149</div>
-                                        <div className="text-xs text-muted-foreground">Faixa de Preço</div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          </div>
                         </div>
 
                         {/* Actions */}
